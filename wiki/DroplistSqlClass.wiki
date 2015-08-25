@@ -1,0 +1,329 @@
+#summary droplist.sql.php
+
+= Description =
+An object called to determine values of a select list in a form.  Values is retrieved depending on the entries declared on the zig_fields table.
+
+= Parameters =
+ * $sql
+
+
+= Return Values =
+ * Return the selected value from a select list.
+
+= Source =
+{{{
+
+class zig_droplist
+{
+	function droplist($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		$zig_pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+		$sql = $parameters['sql'] ;
+		$sql = str_replace("$"."{pre}",$zig_pre,$sql) ;
+		$sql = str_replace("$"."{zig_global_database}",$zig_global_database,$sql) ;
+		$parameters['sql'] = $sql ;
+		$value = $parameters['value'] ;
+		$default = $parameters['default'] ;
+		$name = $parameters['name'] ;
+		$method = $parameters['method'] ;
+		$list_limit = array_key_exists('limit',$parameters) ? $parameters['list_limit'] : zig("config","list_limit") ;
+		$filter = $parameters['filter'] ;
+		$filter_name = "boo_droplist_filter_".$name ;
+		$filter_selected = isset($_GET[$filter_name]) ? $_GET[$filter_name] : (isset($_POST[$filter_name]) ? $_POST[$filter_name] : '') ;
+
+		if($method=="selected")
+		{
+			$boo_result['value'] = $this->selected($parameters) ;
+		}
+		else
+		{
+			$ripped_sql = split(" from",$sql) ;
+			$ripped_sql = split("select ",$ripped_sql[0]) ;
+			$column = $ripped_sql[1] ;
+			if(!stripos($column,$value))
+			{
+//				$sql = preg_replace("/select/","select ".$value.",",$sql,1) ;
+			}
+			
+			if(strpos($column,","))
+			{
+				$ripped_column = split(",",$column) ;
+				$column = isset($ripped_column[0]) ? $ripped_column[0] : $value ;
+			}
+
+			$result = zig("query",$sql,"droplist.sql.php1",false) ;
+			$record_count = $result->RecordCount() ;
+
+			// -- Start apply filter
+			if($filter_selected and $filter_selected<>"all" and $record_count>$list_limit)
+			{
+				if(stripos($sql,"where"))
+				{
+					$sql = str_ireplace("where","where $column like '".$filter_selected."%' and",$sql) ;
+				}
+				else
+				{
+					if(stripos($sql,"limit"))
+					{
+						$sql = str_ireplace("limit","where $column like '".$filter_selected."%' limit",$sql) ;
+					}
+					else if(stripos($sql,"order"))
+					{
+						$sql = str_ireplace("order","where $column like '".$filter_selected."%' order",$sql) ;
+					}
+					else
+					{
+						$sql = $sql." where $column like '".$filter_selected."%'" ;
+					}
+				}
+				$result = zig("query",$sql,"droplist.sql.php2",false) ;
+			}
+			// -- Start apply filter
+
+			if($result<>"")
+			{
+				$exclude = $parameters['exclude'] ;
+				if(is_array($exclude))
+				{
+					$exclude[] = $value ;
+				}
+				else if($exclude)
+				{
+					$exclude = array
+					(
+						$exclude,
+						$value
+					) ;
+				}
+				else
+				{
+					$exclude = $value ;
+				}
+			
+				$result->MoveFirst() ;
+				$ripped_fields = zig("fetchcol",$result) ;
+				$op_value = (is_array($parameters) and isset($parameters['value'])) ? $parameters['value'] : "" ;
+			
+			/*if(!in_array($op_value,$ripped_fields))
+			{
+				on this area, zig will send warning that option value is not found on result query ;
+				just waiting for the message.lib.php class ;
+			}*/
+
+					$parameters['no_blank'] = ($parameters['no_blank']<>"") ? $parameters['no_blank'] : zig("config","no_blank") ;
+					$separator = (is_array($parameters) and isset($parameters['separator'])) ? $parameters['separator'] : zig("config","separator") ;
+					if(strpos($separator,","))
+					{
+						$separator = split(",",$separator) ;
+						$end_separator = end($separator) ;
+						reset($separator) ;
+					}
+
+					$fields_count = count($ripped_fields) ;
+		
+					if($fields_count>1)
+					{
+						while($fetch=$result->fetchRow())
+						{
+							$count = 0 ;
+							$value = $fetch[$parameters['value']] ;
+							$droplist.= ($value == $default and $value<>"") ? "<option value='$value' selected='selected'>" : "<option value='$value'>" ;
+							foreach($ripped_fields as $value)
+							{
+								$count++ ;
+								if($value==$exclude)
+								{
+									continue ;
+								}
+								else if(is_array($exclude))
+								{
+									if(in_array($value,$exclude))
+									{
+										continue ;
+									}
+								}
+
+								$droplist.= $fetch[$value] ;
+								if($fields_count<>$count)
+								{
+									if(is_array($separator))
+									{
+										$droplist.= current($separator) ;
+										if($end_separator!=current($separator))
+										{
+											next($separator) ;
+										}
+									}
+								else
+								{
+									$droplist.= $separator ;
+								}
+							}
+						}
+						$droplist.= "</option>" ;
+						if(is_array($separator))
+						{
+							reset($separator) ;
+						}
+					}
+				}
+			
+				else
+				{
+					$single_field = $ripped_fields[0] ;
+					while($fetch=$result->fetchRow())
+					{
+						$value = $fetch[$parameters['value']] ;
+						$droplist.= "<option value='$value'>$fetch[$single_field]</option>" ;
+					}
+				}
+
+				$droplist = ($droplist and !$parameters['no_blank']) ? "<option></option>".$droplist : $droplist ;
+			}
+		
+			else
+			{
+				$boo_result['error'] = $GLOBALS['zig']['obj']['error']->error(106) ;
+			}
+
+			if($default and !stripos($droplist,"selected='selected'") and is_array($parameters))
+			{
+				$parameters['droplist']  = $droplist ;
+				$selected_return = $this->search_selected($parameters) ;
+				$droplist = $selected_return['buffer'] ;
+			}
+			$droplist = "<select name='$name'>".$droplist."</select>" ;
+			
+			if($record_count>$list_limit)
+			{
+				$droplist = $this->filter($parameters['name']).$droplist ;
+			}
+
+			if($method=="selected_label")
+			{
+				$droplist = $this->selected_label($droplist) ;
+			}
+		
+			$boo_result['value'] = $droplist ;
+		}
+	
+		return $boo_result ;
+	}
+	
+	function selected_label($parameters)
+	{
+		$droplist = $parameters ;
+		$ripped_droplist = split("selected='selected'>",$droplist) ;
+		$ripped_option = split("</option>",$ripped_droplist[1]) ;
+		$boo_result = $ripped_option[0] ;
+		
+		return $boo_result ;
+	}
+	
+	function search_selected($parameters)
+	{
+		$droplist = $parameters['droplist'] ;
+		$sql = $parameters['sql'] ;
+		$default = $parameters['default'] ;
+		$value = $parameters['value'] ;
+
+		$sql = strtolower($sql) ;
+		$ripped_sql = split("select ",$sql) ;
+		$ripped_field = split(" from",$ripped_sql[1]) ;
+		$default_field = $ripped_field[0] ;
+		if(strpos($default_field,","))
+		{
+			$ripped_field = split(",",$default_field) ;
+			$default_field = $ripped_field[0] ;
+		}
+		$ripped_sql = split(" from ",$sql) ;
+		$ripped_sql = split(" ",$ripped_sql[1]) ;
+		$select_table = $ripped_sql[0] ;
+		$sql = "SELECT $value FROM $select_table WHERE $default_field='$default' LIMIT 1" ;
+		$selected_result = zig("query",$sql,"droplist.sql.php3") ;
+		$selected_fetch = $selected_result->fetchRow() ;
+
+		$boo_result['value'] = $selected_fetch[$value] ;
+		$boo_result['buffer'] = isset($selected_fetch[$value]) ? str_ireplace("<option value='$selected_fetch[$value]'>","<option value='$selected_fetch[$value]' selected='selected'>",$droplist) : $droplist ;
+		
+		return $boo_result ;
+	}
+	
+	
+	function selected($parameters)
+	{
+		$default = $parameters['default'] ;
+		$value = $parameters['value'] ;
+		$sql = strtolower($parameters['sql']) ;
+
+		if(stripos($sql,"where"))
+		{
+			$sql = str_ireplace("where","where $value='$default' and ",$sql) ;
+		}
+		else
+		{
+			$ripped_sql = split(" from ",$sql) ;
+			$ripped_table = split(" ",$ripped_sql[1],2) ;
+			$sql = $ripped_sql[0]." from ".$ripped_table[0]." where $value='$default' ".$ripped_table[1] ;
+		}
+		
+		if(!stripos($sql,"limit"))
+		{
+			$sql.= " limit 1" ;
+		}
+		else
+		{
+			$ripped_sql = split("limit",$sql) ;
+			$sql = $ripped_sql[0]."limit 1" ;
+		}
+
+		$result = zig("query",$sql,"droplist.sql.php4") ;
+		$fetch=$result->fetchRow() ;
+		
+		if(isset($fetch[$value]))
+		{
+			$boo_result = $fetch[$value] ;
+		}
+		else
+		{
+			$selected_return = $this->search_selected($parameters) ;
+			$boo_result = $selected_return['value'] ;
+		}
+		
+		return $boo_result ;
+	}
+	
+	
+	function filter($name)
+	{
+		$filter_name = "boo_droplist_filter_".$name ;
+		$buffer.= "<select name='$filter_name' onchange='submit()'>" ;
+		$buffer.= "<option></option>" ;
+		foreach(range('a','z') as $char)
+		{
+			$buffer.= "<option value='$char'>" ;
+			$buffer.= $char ;
+			$buffer.= "</option>" ;
+			$counter++ ;
+		}
+
+/*		$buffer.= "<option value='#'>" ;
+		$buffer.= "#" ;
+		$buffer.= "</option>" ;*/
+		$buffer.= "<option value='all'>" ;
+		$buffer.= "all" ;
+		$buffer.= "</option>" ;
+		$buffer.= "</select>" ;
+		$filter_selected = isset($_GET[$filter_name]) ? $_GET[$filter_name] : (isset($_POST[$filter_name]) ? $_POST[$filter_name] : '') ;
+		$buffer = $filter_selected ? str_ireplace("value='$filter_selected'","value='$filter_selected' selected='selected'",$buffer) : $buffer ;
+		$boo_result = $buffer ;
+		
+		print_r($boo_result);
+		print $boo_result;
+		
+		return $boo_result ;
+	}
+}
+
+}}}

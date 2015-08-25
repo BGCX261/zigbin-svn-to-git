@@ -1,0 +1,50 @@
+#summary droplist - droplist/selectlist
+#labels Featured,Phase-Implementation
+
+= droplist =
+
+ droplist - droplist/selectlist
+
+ (zigbin 1.0)
+
+
+= Description =
+
+ string droplist(array parameters) = retrieve data from database and prepare as options for a droplist/selectlist 
+
+
+= Parameters =
+
+ sql = SQL statement
+ 
+ no_blank = disable the blank option inserted -- 0 - disable (default), 1 - enable
+
+ separator = character separator on multiple fields -- "--"(default)
+
+ value = the field name that contains the value that will be given on the options
+ 
+ default = the default value that will be selected
+
+= Return Value =
+
+ returns error statement if an error is encountered. if no error on the process, it will return the completed option set, you just need to wrap it with the select tag. 
+
+= Example =
+{{{
+<?php
+ require_once("../zig-api/zigbin.php");
+
+$parameters = array
+(
+  'function'	=> 'droplist',
+  'sql'         => 'SELECT * FROM mytable',
+  'default'	=> '',
+  'value'	=> 'myid',
+  'separator'	=> ' -- '
+) ;
+
+$zig_options = zig($parameters);
+
+?>
+
+<select name='zig_select'>$zig_options</select>

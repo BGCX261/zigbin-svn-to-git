@@ -1,0 +1,61 @@
+#summary reports.gui.php
+
+= Description =
+A class responsible in generating log reports.
+
+= Parameters =
+ * $module
+
+= Return Value =
+ * Returns a buffer result then triggers as true or false.
+
+= Source =
+{{{
+class zig_reports
+{
+	function reports($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1 or $arg2 or $arg3)
+		{
+			$module = $arg1 ;
+		}
+		else if(is_array($parameters))
+		{
+			$module = $parameters['module'] ;
+		}
+
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+		$report_sql = "SELECT name,image FROM $zig_global_database.${pre}reports WHERE module='$module'" ;
+		$report_result = zig("query",$report_sql,"reports.gui.php") ;
+
+		while($report_fetch = $report_result->fetchRow())
+		{
+			$element = zig("template","block","reports","element") ;
+			$name = "<a href=''>$report_fetch[name]</a>" ;
+			$element = str_replace("{zig_report_title}",$name,$element) ;
+			$image_source = zig("images",$report_fetch['image']) ;
+			$image = "<a href=''><img src='$image_source' href='' /></a>" ;
+			$element = str_replace("{zig_report_image}",$image,$element) ;
+			$print = "<a href=''>Print</a>" ;
+			$element = str_replace("{zig_report_print}",$print,$element) ;
+			$cell = zig("template","block","reports","cell") ;
+			$buffer.= str_replace("{cell}",$element,$cell) ;
+		}
+
+		if($buffer)
+		{
+			$row = zig("template","block","reports","row") ;
+			$buffer = str_replace("{row}",$buffer,$row) ;
+			$table = zig("template","block","reports","div") ;
+			$buffer = str_replace("{table}",$buffer,$table) ;
+		}
+		
+		$zig_return['value'] = $buffer ;
+		$zig_return['return'] = 1 ;
+		
+		return $zig_return ;
+	}
+}
+
+}}}

@@ -1,0 +1,10 @@
+#labels Featured,Phase-Implementation
+#Zigbin Installation.
+
+= Installation =
+
+1. Checkout the [http://code.google.com/p/zigbin/source/checkout zigbin source code] and download the [http://zigbin.googlecode.com/files/2008-04-09-zigbin_zigglobal.zip zigbin sql dump].
+
+2. Put your the [http://code.google.com/p/zigbin/source/checkout zigbin source code] unto your web directory and run the [http://zigbin.googlecode.com/files/2008-04-09-zigbin_zigglobal.zip zigbin sql dump] to your database.
+
+3. [http://code.google.com/p/zigbin/wiki/Configuration Configure your zigbin installation]

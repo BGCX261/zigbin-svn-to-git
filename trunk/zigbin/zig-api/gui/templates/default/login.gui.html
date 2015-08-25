@@ -1,0 +1,21 @@
+<!-- start login -->
+<form name="form_zig_gate" action="{action}" method="post">
+<table>
+	<tr>
+		<td>Username:&nbsp;</td>
+		<td><input id="username_id" name="username" class="zig_input_string" value="{username}" /></td>
+	</tr>
+	<tr>
+		<td>Password:&nbsp;</td>
+		<td><input id="password_id" name="password" class="zig_input_string" type="password" /></td>
+	</tr>
+	{captcha}
+	<tr>
+		<td colspan="2">
+        	<div align="center"><input type="submit" name="login" value="Login" onclick="if(document.getElementById('username_id').value=='' || document.getElementById('password_id').value=='') {alert('Username and Password should not be blank!') ; return false ;}" /></div>
+        </td>
+	</tr>
+</table>
+</form>
+
+<!-- end login -->

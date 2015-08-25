@@ -1,0 +1,137 @@
+#summary gate.lib.php
+
+= Description =
+
+An object for login. It has a method for logging in and logging out. When it is called for logging in it calls object zig_config for the configuration, object zig_hash to hash url values and authentication object for user and password authentication.  
+
+
+= Parameters = 
+
+* method = login()
+   # $username
+   # $password
+ 
+ * method = logout()
+
+
+= Return value =
+
+ * Returns the object and it's method called.
+
+= Source =
+
+{{{
+
+class zig_gate
+{
+	function gate($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		print_r($parameters);
+		print $arg1;
+		
+		if($arg1 or $arg2 or $arg3)
+		{
+			$method = $arg1 ;
+		}
+		else if(is_array($parameters))
+		{
+			$method = array_key_exists('method',$parameters) ? $parameters['method'] : NULL ;
+		}
+
+		if($method=="logout")
+		{
+			$this->logout() ;
+		}
+		else
+		{
+			$zig_result = $this->login() ;
+		}
+		
+		return $zig_result ;
+	}
+
+	function login()
+	{
+			require_once("../zig-api/lib/hash.lib.php") ;
+			require_once("../zig-api/lib/config.lib.php") ;
+			$boo_hash_obj = new zig_hash ;
+			$config_obj = new zig_config ;
+			$config_value = $config_obj->config("config","module") ;
+			$module = $config_value['value'] ;
+			$zig_hash = isset($_GET['zig_hash']) ? $_GET['zig_hash'] : (isset($_POST['zig_hash']) ? $_POST['zig_hash'] : '') ;
+			$return_url = $zig_hash ? "http://".$_SERVER['HTTP_HOST'].$boo_hash_obj->hash_decrypt($zig_hash) : "../".$module ;
+			$zig_screen_size = isset($_COOKIE['zig_screen_size']) ? $_COOKIE['zig_screen_size'] : NULL ;
+			if($_COOKIE['boo_hash']<>"")
+			{
+				if(!session_id())
+				{
+					session_start() ;
+				}
+		
+				$boo_hash_vars = $boo_hash_obj->hash_vars_decode($_COOKIE['boo_hash']) ;
+				if(session_id()==$boo_hash_vars['session_id'])
+				{
+					header("Location: $return_url") ;
+					exit() ;
+				}
+			}		
+			$mod = $GLOBALS['zig']['current']['module'] ;
+			$GLOBALS[$mod]['current']['method'] = "login" ;
+			$boo_result['buffer'] = zig("template","file","gate") ;
+			$boo_result['buffer'] = str_replace("{zig_title}",zig("config","title"),$boo_result['buffer']) ;
+			$zig_icon = zig("config","icon") ;
+			$zig_icon = zig("images",$zig_icon) ;
+			$boo_result['buffer'] = str_replace("{zig_icon}",$zig_icon,$boo_result['buffer']) ;
+			$login = isset($_GET['login']) ? $_GET['login'] : (isset($_POST['login']) ? $_POST['login'] : '') ;
+
+
+			if($login)
+			{
+				$username = isset($_POST['username']) ? $_POST['username'] : '' ;
+				$password = isset($_POST['password']) ? $_POST['password'] : '' ;
+
+				$zig_authentication = zig("config","authentication") ;
+				$authentication = zig("authenticate",$zig_authentication,$username,$password) ;
+				
+				if($authentication)
+				{
+					$cookie = $GLOBALS['zig']['default']['cookie'] ;
+					$host = $_SERVER['HTTP_HOST'] ;
+					$url = str_replace($host,"",$_SERVER['PHP_SELF']) ;
+					$url = str_replace("zig-api/index.php","",$_SERVER['PHP_SELF']) ;
+					session_start() ;
+					$boo_hash = "username=".$username.",session_id=".session_id().",url=".$url ;
+					$boo_hash = $boo_hash_obj->hash_encrypt($boo_hash) ;
+					setcookie("boo_hash",$boo_hash,$cookie,$url,$host) ;
+					header("Location: $return_url") ;
+					exit() ;
+				}
+				else
+				{
+					$boo_result['buffer'] = str_replace("{message}","authentication failed!",$boo_result['buffer']) ;
+				}
+			}
+			
+			$boo_result['buffer'] = strpos($boo_result['buffer'],"{message}") ? str_replace("{message}","",$boo_result['buffer']) : $boo_result['buffer'] ;
+			$boo_result['topmenu'] = 0 ;
+			$boo_result['applications'] = 0 ;
+			$boo_result['actions'] = 0 ;
+		
+			print_r($boo_result);
+			return $boo_result ;
+	}
+	
+	function logout()
+	{
+		$cookie = $GLOBALS['zig']['default']['cookie'] ;
+		$host = $_SERVER['HTTP_HOST'] ;
+		$url = str_replace($host,"",$_SERVER['PHP_SELF']) ;
+		$url = str_replace("zig-api/decoder.php","",$_SERVER['PHP_SELF']) ;
+		setcookie("boo_hash","",$cookie,$url,$host) ;
+		session_destroy() ;
+		header("Location: ../zig-api/index.php") ;
+		exit() ;
+	}
+}
+
+}}}

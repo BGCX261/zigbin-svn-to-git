@@ -1,0 +1,63 @@
+#summary Administration - Administration Guide
+
+= Administration =
+
+Administration Guide
+
+= Introduction =
+
+The administration guide provides information necessary to use and administer API Zigbin:
+
+ # Information on the implementation of modules.
+ # User, groups management and permissions.
+
+
+= Details =
+
+== Information on the implementation of modules. ==
+          
+After creating a script for your module, you must have admin rights for you to be able to configure your module to the API.  In configurations tab, this is were you will declare values that you want to add for your module. Example: `pre`, if you have a module called inventory system(IS), zigbin will allow you to use {{{'is_'}}} as your `pre` for your module.  There are a lot of values that you need to consider in the configurations tab and most of these belonged to a general configuration of zigbin.  Modules are added manually using your Applications tab.  When modules are added see to it that you have entered the right values for each field, the right patterns and paths. By default the API has available modules declared which shows a list modules in ascending order.  This entries can be edited and removed by just checking on the checkbox or click on the line that you want to edit and remove.  Entries are searchable in two different searches, power search and specific search.
+ Applications Tab fields:
+ * Id - auto increment and unique
+ * Name - name of your module, will appear as a text link
+ * Title - display title of your module
+ * Icon - the path to your icon, if blank a default icon will be used(not recommended)
+ * Directory - name of your directory
+ * Permission - permission of your module
+ * Target - declaring your module as parent
+ * Link - link to your module
+
+== Users, Groups management and permissions. ==
+
+=== Users. === 
+This tab is responsible for adding users for your module. Zigbin offers two different user authentications. Primarily a database authentication and LDAP authentication.  In most web applications, User administration plays an important role for the implementation  of the software.  Zigbin recognizes these feature for the admin role of zigbin.  
+
+=== Groups. === 
+Zigbin users can be grouped depending on their group level access.  Administration of users by groups is easier in the long run.  And permissions by groups is the best practice if having a multiple number of users.  
+
+=== Permissions. === 
+Ideally in User Administration an advance permission check must be considered for data handling.  Permission by module, permission by tabs, by action, by field name and by field value are among those recognized by zigbin in permission checking.  
+
+==== Permission by module: ====
+ * List of all modules
+
+==== Permissions by tab: ====
+ * List of all tabs
+
+==== Permissions by action: ====
+ * All
+ * Add
+ * Edit
+ * Delete
+ * Export
+ * Import
+ * Print
+ * Search
+ * View
+
+==== Permissions by field name: ====
+ * a specific field name
+
+==== Permissions by field value: ====
+ * a specific value
+  

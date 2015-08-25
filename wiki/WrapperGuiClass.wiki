@@ -1,0 +1,71 @@
+#summary wrapper.gui.php
+
+= Description =
+A class used to wrap up everything including the actions with their corresponding themes and stylesheets and javascripts.
+
+= Parameters =
+ * $function
+
+= Return Value =
+ * Return true or false for every classes called.
+
+= Source =
+{{{
+class zig_wrapper
+{
+	function wrapper($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1 or $arg2 or $arg3)
+		{
+			$buffer = $arg1 ;
+			$function = $arg2 ;
+		}
+		else if(is_array($parameters))
+		{
+			$buffer = array_key_exists("buffer",$parameters) ? $parameters['buffer'] : NULL ;
+			$function = array_key_exists("function",$parameters) ? $parameters['function'] : NULL ;
+		}
+
+		$buff = zig("template","file","wrapper") ;
+		$buffer = zig("template",$buff,"{buffer}",$buffer) ;
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+		$module = $GLOBALS['zig']['current']['module'] ;
+		$script = $GLOBALS['zig']['current']['script'] ;
+		$mythemes = $GLOBALS['zig']['default']['theme'] ;
+
+		$sql = "SELECT name FROM $zig_global_database.${pre}applications WHERE directory='$module' LIMIT 1" ;
+		$result = zig("query",$sql,"wrapper.gui.php") ;
+		$fetch = $result->fetchRow() ;
+		$title = $fetch['name'] ? $fetch['name'] : $module ;
+
+		$sql = "SELECT $zig_global_database.${pre}tabs.name FROM $zig_global_database.${pre}tabs,$zig_global_database.${pre}applications WHERE module=${pre}applications.name AND directory='$module' AND ${pre}tabs.link='$script' LIMIT 1" ;
+		$result = zig("query",$sql,"wrapper.gui.php") ;
+		$fetch = $result->fetchRow() ;
+		$splitted_script = split(".",$script) ;
+		$script = $splitted_script[0] ;
+		$procedure = $fetch['name'] ? $fetch['name'] : $script ;
+		$procedure = ($title and $procedure) ? " | ".$procedure : $procedure ;
+		
+		$method = $function ? $function : $GLOBALS[$module]['current']['method'] ;
+		$method = ($method and ($title or $procedure)) ? " | ".zig("string_format",$method,"titlecase") : zig("string_format",$method,"titlecase") ;
+		$zig_main_css = "../".$GLOBALS['zig']['current']['module']."/gui/themes/".$GLOBALS['zig']['default']['theme']."/css/main.gui.css" ;
+		$zig_main_css = file_exists($zig_main_css) ? "<link href='".$zig_main_css."' rel='stylesheet' type='text/css' />" : "<link href='../zig-api/gui/themes/$mythemes/css/main.gui.css' rel='stylesheet' type='text/css' />" ;
+		$zig_additional_css = "../".$GLOBALS['zig']['current']['module']."/gui/themes/".$GLOBALS['zig']['default']['theme']."/css/addon.gui.css" ;
+		$zig_additional_css = file_exists($zig_additional_css) ? "<link href='".$zig_additional_css."' rel='stylesheet' type='text/css' />" : "" ;
+
+		$buffer = str_replace("{zig_main_css}",$zig_main_css,$buffer) ;
+		$buffer = str_replace("{zig_additional_css}",$zig_additional_css,$buffer) ;
+		$buffer = str_replace("{zig_title}",$title,$buffer) ;
+		$buffer = str_replace("{zig_procedure}",$procedure,$buffer) ;
+		$buffer = str_replace("{zig_method}",$method,$buffer) ;
+
+		$boo_result['return'] = 1 ;
+		$boo_result['value'] = $buffer ;
+
+		return $boo_result ;
+	}
+	
+}
+
+}}}

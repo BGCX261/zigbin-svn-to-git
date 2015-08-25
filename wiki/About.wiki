@@ -1,0 +1,11 @@
+#summary About Zigbin.
+#labels Featured
+
+= Introduction =
+
+About Zigbin
+
+
+= Details =
+
+Zigbin is an API written in PHP and Javascript, that can be used by web developers to cut down the development time of web applications. Zigbin eliminates the repetitive task of creating the basic operation on web applications, like the "adding of data", "editing of data", "deleting of data", "searching of data". This functionality is provided by Zigbin by just reading your database table. Aside from the basic functionality that zig provide, it also provide the most commonly used feature in data applications, like the data export, data import, data reporting, and data printing. 

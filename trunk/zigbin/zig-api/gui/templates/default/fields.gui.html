@@ -1,0 +1,105 @@
+<!-- start fields -->
+{fields}
+
+<!-- start fields -->
+
+<!-- start fields header -->
+<input id="{semi_stripped_table}_children_id" name="{semi_stripped_table}_children" type="hidden" {kids_value} />
+<table id="{semi_stripped_table}">
+	<tr>
+		<th>#</th>
+		<th>Actions</th>
+		{header_fields}
+	</tr>
+
+<!-- start fields header -->
+
+<!-- start fields header view -->
+<input id="{semi_stripped_table}_children_id" name="{semi_stripped_table}_children" type="hidden" {kids_value} />
+<table id="{semi_stripped_table}">
+	<tr>
+		<th>#</th>
+		{header_fields}
+	</tr>
+
+<!-- start fields header view -->
+
+<!-- start fields header cell -->
+<th>{field_name}</th>
+
+<!-- start fields header cell -->
+
+<!-- start textarea cell -->
+{zig_textarea}
+
+<!-- end textarea cell -->
+
+<!-- start child row model -->
+<div id='zig_fields_child_row_model_{stripped_table}' class='zig_invisible'>
+	{zig_child_fields_row}
+</div>
+
+<!-- end child row model -->
+
+<!-- start unit -->
+<span class='zig_span_fields_unit'>
+	{zig_div_fields_unit}
+</span>
+
+<!-- end unit -->
+
+<!-- start field table -->
+<div id='zig_div_field_dependent_${current_field_name}'>
+<table>
+	<tr>
+		{zig_field_content}
+	</tr>
+</table>
+</div>
+<!-- end field table -->
+
+<!-- start field td -->
+<td>{zig_field_content}</td>
+
+<!-- end field cell -->
+
+<!-- start field table model -->
+<div id='zig_div_field_dependent_${current_field_name}'>
+{zig_table}
+	{zig_tr}
+		{zig_field_model_content}
+	{/zig_tr}
+{/zig_table}
+</div>
+<!-- end field table model -->
+
+<!-- start field total table -->
+<tfoot>
+	<tr>
+		<td>&nbsp;</td>
+		<td><strong>TOTAL</strong></td>
+		{zig_field_total_content}
+	</tr>
+<tfoot>
+
+<!-- end field total table -->
+
+<!-- start field total cell -->
+<td><div id="zig_field_total_{field_name}" class="zig_field_total_cell">{zig_field_total_cell}</div></td>
+
+<!-- end field total cell -->
+
+<!-- start child add button -->
+<input type="button" value="add" onclick="insertRowToTable('{semi_stripped_table}','zig_fields_child_row_model_{stripped_table}') ;" />
+
+<!-- end child add button -->
+
+<!-- start description -->
+<div class="zig_div_fields_description">{description}</div>
+
+<!-- end description -->
+
+<!-- start fields div add -->
+<div id="zig_div_field_{current_field_name}">
+
+<!-- end fields div add -->

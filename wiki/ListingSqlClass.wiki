@@ -1,0 +1,382 @@
+#summary listing.sql.php
+
+= Description =
+A class called to select all records in a table to be displayed.  Contents of database tables of all applications are displayed automatically by default if there are records existing. 
+
+= Parameters =
+ * $table
+ * $listin_sql
+ * $print_view
+ * $row_limit
+ * $zig_attach
+ * $zig_keyword
+
+= Return Values =
+ * Returns corresponding buffer and value.
+
+= Source =
+{{{
+
+class zig_listing
+{
+	function listing($parameters,$arg1='',$arg2='',$arg3='')
+	{
+			if($arg1 or $arg2 or $arg3)
+			{
+				$listing_sql = $arg1 ;
+				$row_limit = $arg2 ;
+				$print_view = $arg3 ;
+			}
+			else if(is_array($parameters))
+			{
+				$table = array_key_exists('table',$parameters) ? $parameters['table'] : NULL ;
+				$listing_sql = array_key_exists('sql',$parameters) ? $parameters['sql'] : NULL ;
+				$print_view = array_key_exists('print_view',$parameters) ? $parameters['print_view'] : NULL ;
+				$row_limit = ( $print_view and !array_key_exists('row_limit',$parameters) ) ? 0 : ( array_key_exists('row_limit',$parameters) ? $parameters['row_limit'] : zig("config","row_limit") ) ;
+				$zig_attach = array_key_exists('zig_attach',$parameters) ? $parameters['zig_attach'] : NULL ;
+				$zig_keyword = array_key_exists('zig_keyword',$parameters) ? $parameters['zig_keyword'] : NULL ;
+			}
+
+			$full_result = zig("query",$listing_sql,"listing.sql.php",false) ;
+			$row_total = $full_result->RecordCount() ;
+			if(!$row_total)
+			{
+				$boo_result['warning'] = "Your search returned 0 result" ;
+			}
+			else
+			{
+			
+			$sort_field = $_POST['zig_listing_sort_field'] ? $_POST['zig_listing_sort_field'] : (isset($parameters['sort_field']) ? $parameters['sort_field'] : "") ;
+			$sort_direction = $_POST['zig_listing_sort_direction'] ? $_POST['zig_listing_sort_direction'] : (isset($parameters['sort_direction']) ? $parameters['sort_direction'] : "") ;
+
+			if($sort_field)
+			{
+				if(stripos($listing_sql," ORDER BY "))
+				{
+					$listing_sql = str_ireplace(" ORDER BY "," ORDER BY `$sort_field` $sort_direction,",$listing_sql) ;			
+				}
+				else if(stripos($listing_sql," GROUP BY "))
+				{
+					$listing_sql = str_ireplace(" GROUP BY "," ORDER BY `$sort_field` $sort_direction GROUP BY ",$listing_sql) ;
+				}
+				else if(stripos($listing_sql," LIMIT "))
+				{
+					$listing_sql = str_ireplace(" LIMIT "," ORDER BY `$sort_field` $sort_direction LIMIT ",$listing_sql) ;
+				}
+				else
+				{
+					$listing_sql = $listing_sql." ORDER BY `$sort_field` $sort_direction " ;
+				}
+			}
+
+			$zig_listing_left_palm_sign = zig("config","listing left palm sign") ;
+			$zig_listing_right_palm_sign = zig("config","listing right palm sign") ;
+			$zig_global_database = zig("config","global_database") ;
+			$pre = zig("config","pre") ;
+			// Start remove the database name on the table
+			$semi_stripped_table = str_replace($zig_global_database.".","",$table) ;
+			// End remove the database name on the table
+
+			// Start stripped table name
+			$stripped_table = str_replace($pre,"",$semi_stripped_table) ;
+			// End stripped table name
+			
+			$list_string_limit = zig("config","list_string_limit") ;
+			$trigger = (is_array($parameters) and isset($parameters['trigger'])) ? $parameters['trigger'] : true ;
+			$php_self = $_SERVER['PHP_SELF'] ;
+			$buffer.= zig("template","file","listing") ;
+			$buffer = str_replace("{attach}",$zig_attach,$buffer) ;
+			$sql = $listing_sql ;
+			
+			/* Start check if sql have LIMIT */
+			if(stripos($sql,"limit"))
+			{
+				$sql = split("limit ",$sql) ;
+				if($sql[1]<>"")
+				{
+					$sql_limit = split(" ",$sql[1]) ;
+					$sql_tail = $sql_limit[1] ;
+					$sql_limit = split(",",$sql_limit[0]) ;
+					$sql_limit = $sql_limit[0] ;
+				}
+				$sql = $sql[0] ? $sql[0].$sql_tail : $listing_sql ;
+			}
+			/* End check if sql have LIMIT */
+
+			/* Start Paging */
+			$paging = $row_limit ? $this->paging("paging",$row_total,$row_limit) : $this->list_info($row_total,$row_total) ;
+			$buffer = str_replace("{listing_paging}",$paging['buffer'],$buffer) ;
+			$current_page = $paging['value'] ;
+			$row_start = $paging['row_start'] ;
+			/* End Paging */
+			
+			$sql_row_start = $row_start ? ($row_start - 1) : $row_start ;
+			$sql = $row_limit ? $sql." limit $sql_row_start,$row_limit" : $sql ;
+
+			$result = zig("query",$sql,"listing.sql.php",false) ;
+			if($result<>"")
+			{
+				$result->MoveFirst() ;
+				/* Start Fields */
+				$table_id = "boo_listing_table" ;
+				$buff.= "<table id='$table_id'>" ;
+				$columns = zig("fetchcol",$result) ;
+
+				unset($column_number) ;
+				$column_number = $print_view ? $column_number : 1 ;
+				$boo_image_up = zig("images","16x16/actions/pixel.png") ;
+				$boo_image_down = zig("images","16x16/actions/pixel.png") ;
+
+				$buff.= "<tr>" ;
+				$buff.= $zig_listing_left_palm_sign ? "<th>#</th>" : "" ;
+				$buff.= $print_view ? '' : "<th><a onclick='check_uncheck()'>All</a><input type='hidden' id='boo_listing_all' value=0 /><input type='hidden' id='zig_listing_sort_field_id' name='zig_listing_sort_field' value='$sort_field' /><input type='hidden' id='zig_listing_sort_direction_id' name='zig_listing_sort_direction' value='$sort_direction' /></th>" ;
+				foreach($columns as $values)
+				{
+					$column_number++ ;
+					$fields[] = $values ;
+					$field_info_sql = "SELECT field_label,alignment,truncate_tolerance FROM ${zig_global_database}.${pre}fields WHERE `field`='$values' AND (`table_name`='$table' OR `table_name`='$semi_stripped_table' OR `table_name`='$stripped_table') AND (`effectivity`='search' OR `effectivity`='all') LIMIT 1" ;
+					$field_info_result = zig("query",$field_info_sql,"listing.sql.php") ;
+					$field_info_fetch[$values] = $field_info_result->fetchRow() ;
+					if($field_info_fetch[$values]['field_label']<>"")
+					{
+						$titlecase_field = $field_info_fetch[$values]['field_label'] ;
+					}
+					else
+					{
+						$titlecase_field = str_replace("_"," ",$values) ;
+						$titlecase_field = zig("string_format",$titlecase_field,"titlecase") ;
+					}
+					$buff.= "<th>" ;
+					$buff.= "<table width='100%'><tr><td align='left' width='10%'><a><img id='boo_listing_column_".$column_number."_img_1' src='$boo_image_up' onclick=\"listing_action('boo_listing_column_".$column_number."','$table_id',1)\"></a><td><td align='center' width='80%'><a id='boo_listing_column_".$column_number."' onclick=\"listing_image('boo_listing_column_".$column_number."','boo_listing_column_".$column_number."_img_1','boo_listing_column_".$column_number."_img_2')\">".$titlecase_field."</a></td><td align='right' width='10%'><a><img id='boo_listing_column_".$column_number."_img_2' src='$boo_image_down' onclick=\"listing_action('boo_listing_column_".$column_number."','$table_id',2)\"></a></td></tr></table>" ;
+					$buff.= "<input type='hidden' id='value_boo_listing_column_".$column_number."' value='0' />" ;
+					$buff.= "<input type='hidden' id='zig_listing_field_".$column_number."' value='$values' />" ;
+					$truncate_option = isset($_GET['zig_listing_truncate_'.$values]) ? $_GET['zig_listing_truncate_'.$values] : (isset($_POST['zig_listing_truncate_'.$values]) ? $_POST['zig_listing_truncate_'.$values] : "yes") ;
+					$buff.= "<input type='hidden' id='zig_listing_truncate_".$values."_id' name='zig_listing_truncate_".$values."' value='$truncate_option' />" ;
+					$buff.= "</th>" ;
+				}
+				$buff.= $zig_listing_right_palm_sign ? "<th>#</th>" : "" ;
+				$buff.= "</tr>" ;
+				/* End Fields */
+
+				// Start Rows
+				$zig_hash = "action=view,zig_keyword=$zig_keyword,id=" ;
+
+				$counter = 0 ;
+				while($fetch=$result->fetchRow())
+				{
+					$boo_row_color = ($boo_row_color == "boo_row_color2") ? "boo_row_color3" : "boo_row_color2" ;
+					$counter++ ;
+					$buff.= "<tr id='boo_listing_row_$counter' class='$boo_row_color' onclick=\"listing_checkbox('boo_listing_checkbox_$counter');\">" ;
+					$buff.= $zig_listing_left_palm_sign ? "<td align='center'>$counter</td>" : "" ;
+					$buff.= $print_view ? '' : "<td align='center'><input type='hidden' id='boo_listing_row_class_$counter' value='$boo_row_color' /><input id='boo_listing_checkbox_$counter' type='checkbox' onclick='listing_checkbox(this.id)' /></td>" ;
+					foreach($fields as $values)
+					{
+						$column++ ;
+						unset($hash_link) ;
+						switch($column)
+						{
+							case 1:
+								$data_link = $php_self."?zig_hash=" ;
+								$hash_link = $zig_hash.$fetch[$values] ;
+								$hash_link = zig("hash","encrypt",$hash_link) ;
+								break ;
+							default:
+								$sql = "SELECT `index`,`sql`,`droplist_module`,`droplist_tab` FROM `${zig_global_database}`.`${pre}fields` WHERE `field`='$values' AND `field_type`='select' LIMIT 1" ;
+								$select_result = zig("query",$sql,"listing.sql.php4") ;
+								$select_fetch = $select_result->fetchRow() ;
+								if($select_fetch['sql'] and $select_fetch['droplist_module'] and $select_fetch['droplist_tab'])
+								{
+									eval("\$sql = \"$select_fetch[sql]\";") ;
+									if(stripos($sql," where "))
+									{
+										$sql = str_ireplace(" where "," WHERE $select_fetch[index]='$fetch[$values]' AND ",$sql) ;
+									}
+									else if(stripos($sql," order by "))
+									{
+										$sql = str_ireplace(" order by "," WHERE $select_fetch[index]='$fetch[$values]' ORDER BY ",$sql) ;
+									}
+									else
+									{
+										$sql.= " WHERE $select_fetch[index]='$fetch[$values]'" ;
+									}
+									if(!stripos($sql," id ") and !stripos($sql,"id,"))
+									{
+										$sql = str_ireplace("select ", " select `id`, ",$sql) ;
+									}
+									$sql.= " LIMIT 1" ;
+									$select_link_result = zig("query",$sql,"listing.sql.php") ;
+									if($select_link_result->RecordCount())
+									{
+										$select_link_fetch = $select_link_result->fetchRow() ;
+										$hash_link = $zig_hash.$select_link_fetch['id'] ;
+										$hash_link = zig("hash","encrypt",$hash_link) ;
+										$data_link = "../".$select_fetch['droplist_module']."/".$select_fetch['droplist_tab']."?zig_hash=" ;
+									}
+									else
+									{
+										unset($datalink,$hash_link) ;
+									}
+								}
+						}
+						$alignment = $field_info_fetch[$values]['alignment'] ? "align='".$field_info_fetch[$values]['alignment']."'" : NULL ;
+						
+						// -- Start trim data
+						$truncate_option = isset($_GET['zig_listing_truncate_'.$values]) ? $_GET['zig_listing_truncate_'.$values] : (isset($_POST['zig_listing_truncate_'.$values]) ? $_POST['zig_listing_truncate_'.$values] : "yes") ;
+						$field_list_string_limit = $field_info_fetch[$values]['truncate_tolerance'] ? $field_info_fetch[$values]['truncate_tolerance'] : $list_string_limit ;
+						if((strlen($fetch[$values]) > $field_list_string_limit) and $field_list_string_limit and $truncate_option<>"no")
+						{
+							$trimmed_string = substr($fetch[$values],0,$field_list_string_limit)."..." ;
+							$balloon_tip = "onmouseover=\"Tip('$fetch[$values]', BALLOON, true, ABOVE, true, OFFSETX, -17, FADEIN, 600, FADEOUT, 600, PADDING, 8)\" onmouseout=\"UnTip()\"" ;
+							$buff.= "<td $alignment $balloon_tip>" ;
+						}
+						else
+						{
+							$trimmed_string = $fetch[$values] ;
+							$buff.= "<td $alignment>" ;
+						}
+						 ;
+						// -- End trim data
+						
+						// -- Start link data
+						if($hash_link and !$print_view)
+						{
+							$trimmed_string_length = strlen($trimmed_string) ;
+							if($trimmed_string_length<4)
+							{
+								unset($trimmed_string_patch) ;
+								while($trimmed_string_length<=4)
+								{
+									$trimmed_string_length++ ;
+									$trimmed_string_patch.= "&nbsp;" ;
+								}
+								$buff.= "<a id='boo_listing_view_index_$counter' href='$data_link$hash_link'>".$trimmed_string_patch.$trimmed_string."</a>" ;
+							}
+							else
+							{
+								$buff.= "<a id='boo_listing_view_index_$counter' href='$data_link$hash_link'>".$trimmed_string."</a>" ;
+							}
+						}
+						else
+						{
+							$buff.= $trimmed_string ;
+						}
+						$buff.= "</td>\n" ;
+						// -- End link data
+					}
+					$buff.= $zig_listing_right_palm_sign ? "<td align='center'>$counter</td>\n" : "" ;
+					$buff.= "</tr>\n" ;
+					unset($column) ;
+				}
+				// End Rows
+				
+				$buff.= "</table>" ;
+				$buffer = str_replace("{listing_list}",$buff,$buffer) ;
+				$buffer = $print_view ? str_replace("{div_boo_listing_rows}","div_zig_print_listing_rows",$buffer) : str_replace("{div_boo_listing_rows}","div_boo_listing_rows",$buffer) ;
+				$buff = zig("summary",$listing_sql) ;
+				$buffer = str_replace("{listing_summary}",$buff,$buffer) ;
+				$buff = ($print_view or !$trigger) ? "" : zig("trigger","listing") ;
+				$buffer = str_replace("{listing_trigger}",$buff,$buffer) ;
+				$buffer = zig("jscripts",$buffer,"listing/listing,wz_tooltip,wz_tooltip/tip_balloon") ;
+			}
+		}
+	
+		$boo_result['buffer'] = $buffer ;
+		$boo_result['form'] = 1 ;
+				
+		return $boo_result ;
+	}
+
+	/* Start Paging */
+	function paging($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$row_total = $arg1 ;
+			$row_limit = $arg2 ;
+		}
+		else
+		{
+			$row_total = $parameters['row_total'] ;
+			$row_limit = $parameters['row_limit'] ;
+		}
+		
+		$current_page = $_POST['boo_page'] ? $_POST['boo_page'] : 1 ;
+		$row_limit = $row_limit ? $row_limit : zig("config","row_limit") ;
+		$page_total = ($row_limit==0) ? 0 : $row_total/$row_limit ;
+		$page_total = ($page_total-intval($page_total)) ? intval($page_total)+1 : $page_total ;
+
+		$buffer.= "<input name='boo_current_page' type='hidden' value='1' />" ;
+		$boo_first = isset($_GET['boo_first']) ? $_GET['boo_first'] : (isset($_POST['boo_first']) ? $_POST['boo_first'] : '') ;
+		$boo_previous = isset($_GET['boo_previous']) ? $_GET['boo_previous'] : (isset($_POST['boo_previous']) ? $_POST['boo_previous'] : '') ;
+		$boo_next = isset($_GET['boo_next']) ? $_GET['boo_next'] : (isset($_POST['boo_next']) ? $_POST['boo_next'] : '') ;
+		$boo_last = isset($_GET['boo_last']) ? $_GET['boo_last'] : (isset($_POST['boo_last']) ? $_POST['boo_last'] : '') ;
+
+		if($boo_first)
+		{
+			$current_page = 1 ;
+		}
+		elseif($_POST['boo_previous'])
+		{
+			$current_page-- ;
+		}				
+		elseif($_POST['boo_next'])
+		{
+			$current_page++ ; 
+		}
+		elseif($_POST['boo_last'])
+		{
+			$current_page = $page_total ;
+		}
+		
+		
+		if($current_page>1)
+		{
+			$buffer.= "<input type='submit' name='boo_first' value='&lt;&lt;'/>&nbsp;" ;
+			$buffer.= "<input type='submit' name='boo_previous' value='&lt;'/>" ;
+		}
+
+		$list_info = $this->list_info($row_total,'',$current_page) ;
+		$buffer.= $list_info['buffer'] ;
+		$boo_result['row_start'] = $list_info['value'] ;
+
+		if($page_total>1)
+		{
+			$buffer.= " @ page<select name='boo_page' onchange='submit()'>" ;
+			while($page_total>$page)
+			{
+				$page++ ;
+				$page_options.= "<option value='$page'>$page</option>" ;
+			}
+			$page_options = str_replace("value='$current_page'","value='$current_page' selected='selected'",$page_options) ;
+			$buffer.= $page_options."</select>" ;
+		}
+
+		if($current_page<$page_total)
+		{
+			$buffer.= "<input type='submit' name='boo_next' type='image' value='&gt;'/>&nbsp;" ;
+			$buffer.= "<input type='submit' name='boo_last' type='image' value='&gt;&gt;'/>" ;
+		}
+		
+		$boo_result['buffer'] = $buffer ;
+		$boo_result['value'] = $current_page ;
+
+		return $boo_result ;
+	}
+	/* End Paging */
+	
+	
+	/* Start Listing Info */
+	
+	function list_info($row_total,$row_limit='',$current_page=1)
+	{
+		$row_limit = $row_limit ? $row_limit : zig("config","row_limit") ;
+		$row_start = ($current_page-1)*$row_limit + 1 ;
+		$row_end = (($row_start + $row_limit - 1)>$row_total) ? $row_total : ($row_start + $row_limit - 1) ;
+		$boo_result['buffer'] = "record $row_start - $row_end of $row_total" ;
+		$boo_result['value'] = $row_start ;
+	
+		return $boo_result ;
+	}
+}
+
+}}}

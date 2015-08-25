@@ -1,0 +1,72 @@
+#summary applications.gui.php
+
+= Description =
+A class used to display the available permitted applications. The applications is being retreived from the database table.
+
+= Parameters =
+ * $pre
+ * $zig_global_database
+ * $permission
+ * $icon
+ * $name
+ * $zig_title
+
+= Return Value =
+ * Returns the buffer tagging as true.
+
+= Source =
+{{{
+class zig_applications
+{
+	function applications($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+		$buffer = zig("template","file","applications") ;
+		$sql = "SELECT * FROM $zig_global_database.${pre}applications WHERE permission='Active' AND status='active' ORDER BY weight,name" ;
+		$result = zig("query",$sql,"applications.gui.php") ;
+		while($fetch=$result->fetchRow())
+		{
+			$permission = zig("permissions",$fetch['directory']) ;
+			if($permission)
+			{
+				// -- start application image
+				$icon.= ($GLOBALS['zig']['current']['module']==$fetch['directory']) ? "<th style=\"border:1px; border-style:solid;\">" : "<th id='zig_apps_.$fetch[name]._image'>" ;
+				unset($target) ;
+				if($fetch['target']=="_link")
+				{
+					$target = ($fetch['target']<>"popup") ? "target = '".$fetch['target']."'" : "onclick=\"window.open('$fetch[link]','$fetch[name]','height=700,width=800,resizable=yes') ; return false ;\" " ;
+				}
+				$icon.= ($fetch['target']<>"popup") ? "<a $target href='../$fetch[directory]'>" : "<a $target href=''>" ;
+				$icon.= "<img src='".zig("images",$fetch['icon'])."' />" ;
+				$icon.= "</a>" ;
+				$icon.= "</th>" ;
+				// -- end application image
+			
+				// -- start application label
+				
+				$name.= "<td id='zig_apps_.$fetch[name].' onmouseover=\"document.getElementById(this.id + '_image').className='boo_actions_image_hover';\" onmouseout=\"document.getElementById(this.id + '_image').className='boo_actions_image';\">" ;
+				$name.= ($fetch['target']<>"popup") ? "<a $target href='../$fetch[directory]'>" : "<a $target href='' >" ;
+				$name.= $fetch['name'] ;
+				$name.= "</a>" ;
+				$name.= "</td>" ;
+				// -- end application label
+			}
+		}
+
+		$zig_title = zig("config","title") ;
+		$zig_icon = zig("config","icon","zig-api") ;
+		$zig_icon = zig("images",$zig_icon) ;
+		$buffer = str_replace("{zig_icon}",$zig_icon,$buffer) ;
+		$buffer = str_replace("{zig_title}",$zig_title,$buffer) ;
+		$buffer = str_replace("{icon}",$icon,$buffer) ;
+		$buffer = str_replace("{name}",$name,$buffer) ;
+		$buffer = str_replace("{header}",zig("display_header"),$buffer) ;
+		$zig_result['value'] = $buffer ;
+		$zig_result['return'] = 1 ;
+		
+		return $zig_result ;
+	}
+}
+
+}}}

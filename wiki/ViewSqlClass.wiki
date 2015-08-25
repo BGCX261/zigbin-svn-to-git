@@ -1,0 +1,99 @@
+#summary view.sql.php
+
+= Description =
+A class used to retrieve a record from the table for viewing.
+
+= Parameters =
+ * function
+ * $table
+ * $id
+ * $print_view
+ * $zig_list_url
+ * $permissions
+
+= Return Value =
+ * Returns a buffer of a specified record in a table.
+
+= Source =
+{{{
+class zig_view
+{
+	function view($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$table = $arg1 ;
+			$id = $arg2 ;
+			$print_view = $arg3 ;
+		}
+		else
+		{
+			$table = $parameters['table'] ;
+			$id = $parameters['id'] ;
+			$print_view = $parameters['print_view'] ;
+			$zig_list_url = $parameters['zig_list_url'] ;
+			$exclude = $parameters['exclude'] ;
+			$permissions = $parameters['permissions'] ;
+		}
+
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+
+		// Start remove the database name on the table
+		$semi_stripped_table = str_replace($zig_global_database.".","",$table) ;
+		// End remove the database name on the table
+
+		// Start stripped table name
+		$stripped_table = str_replace($pre,"",$semi_stripped_table) ;
+		// End stripped table name
+	
+		$sql = "SELECT * FROM $zig_global_database.${pre}relationships WHERE parent_table='$table' OR parent_table='$semi_stripped_table' OR parent_table='$stripped_table' OR parent_table='all tables' ORDER BY weight" ;
+		$field_result = zig("query",$sql,"view.sql.php") ;
+
+		$wizard_parameters = array
+		(
+			'function'		=>	'fields',
+			'method'		=>	'parent',
+			'table'			=>	$table,
+			'exclude'		=>	$exclude,
+			'id'			=>	$id,
+			'mode'			=>	'view',
+			'permissions'	=>	$permissions
+		) ;
+		$buffer.= zig($wizard_parameters) ;
+
+		// -- Start process child table			
+		while($field_fetch=$field_result->fetchRow())
+		{
+			$field_fetch['child_table'] = str_replace($zig_global_database.".","",$field_fetch['child_table']) ;
+			$field_fetch['child_table'] = str_replace($pre,"",$field_fetch['child_table']) ;
+			$field_fetch['child_table'] = $zig_global_database.".".$pre.$field_fetch['child_table'] ;
+
+			$wizard_parameters = array
+			(
+				'function'		=>	'fields',
+				'method'		=>	'child',
+				'table'			=>	$field_fetch['child_table'],
+				'parent_table'	=>	$table,
+				'parent_id'		=>	$id,
+				'exclude'		=>	$exclude,
+				'mode'			=>	'view',
+				'permissions'	=>	$permissions
+			) ;
+			$buffer.= zig($wizard_parameters) ;
+		}
+		// -- End process child table
+
+		$buffer = $print_view ? $buffer : $buffer.zig("trigger","view",$id) ;
+		$template = zig("template","file","view") ;
+		$buffer = str_replace("{view}",$buffer,$template) ;
+		$buffer = str_replace("{enctype}","",$buffer) ;
+		$buffer = str_replace("{zig_list_url}","<a href='$zig_list_url'>&lt;&lt;&lt;Back to list</a>",$buffer) ;
+		$boo_result['buffer'] = $buffer ;
+
+		return $boo_result ;
+	}
+
+}
+
+}}}

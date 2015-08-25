@@ -1,0 +1,58 @@
+#summary info.lib.php
+
+= Description =
+A class called to provide user or group info. This is primarily used by the permnissions class. 
+
+= Parameters =
+ * user
+ * group
+
+= Return Value = 
+* Returns true if a user or group is available in the database or LDAP.
+
+= Source =
+{{{
+
+ 
+class zig_info
+{
+	function info($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1 or $arg2 or $arg3)
+		{
+			$info = $arg1 ;
+		}
+		else if(is_array($parameters))
+		{
+			$info = array_key_exists("info",$parameters) ? $parameters['info'] : NULL ;
+		}
+
+		if($info)
+		{
+			$zig_return['value'] = $this->$info() ;
+		}
+
+		$zig_return['return'] = 1 ;
+		return $zig_return ;
+	}
+	
+	function user()
+	{
+		require_once("../zig-api/lib/hash.lib.php") ;
+		$boo_hash_obj = new zig_hash ;
+		$zig_hash = $boo_hash_obj->hash_vars_decode($_COOKIE['boo_hash']) ;
+		$zig_return = $zig_hash['username'] ;
+		return $zig_return ;
+	}
+
+	function group()
+	{
+		require_once("../zig-api/lib/hash.lib.php") ;
+		$boo_hash_obj = new zig_hash ;
+		$zig_hash = $boo_hash_obj->hash_vars_decode($_COOKIE['boo_hash']) ;
+		$zig_return = $zig_hash['username'] ;
+		return $zig_return ;
+	}
+}
+
+}}}

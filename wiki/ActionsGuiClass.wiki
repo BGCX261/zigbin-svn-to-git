@@ -1,0 +1,118 @@
+#summary actions.gui.php
+
+= Description =
+A class used to call gui template of each action(add, edit, view, search) called.
+
+= Parameters =
+ * $function
+ * $id
+
+= Return Value =
+ * Returns an action specified with a buffer tagging it as true.
+
+= Source =
+{{{
+class zig_actions
+{
+	function actions($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$function = $arg1 ;
+			$id = $arg2 ;
+		}
+		else
+		{
+			$function = $parameters['function'] ;
+			$id = $parameters['id'] ;
+		}
+		
+		$url = $_SERVER['PHP_SELF'] ;
+		if(strpos($url,"?"))
+		{
+			$ripped_url = split("?boo",$url) ;
+			$url = $ripped_url[0] ;
+		}
+		
+		if($function=="add" or $function=="search")
+		{
+			$exclude = array
+			(
+				'view',
+				'edit',
+			) ;
+		}
+
+		// Temporarily disable help action, waiting for the help object
+
+		$exclude[] = 'help' ;
+		
+		// Temporarily disable help action, waiting for the help object
+		
+		$op = array
+		(
+			'view'		=>	'32x32/mimetypes/bmp.png',
+			'edit'		=>	'32x32/actions/edit.png',
+			'add'		=>	'32x32/actions/add.png',
+			'search'	=>	'32x32/actions/viewmag.png',
+			'help'		=>	'32x32/apps/khelpcenter.png'
+		) ;
+		
+		$actions.= "<table>" ;
+		$actions.= "<tr>" ;
+		foreach($op as $key => $icon)
+		{
+			if(!in_array($key,$exclude))
+			{
+				if($key==$function)
+				{
+					$actions.= "<th align='center' style=\"border:1px; border-style:solid;\">" ;
+					$actions.= "<a id='boo_actions_image_".$key."' href=''>" ;
+				}
+				else
+				{
+					$actions.= "<th align='center' class='boo_actions_image' id='boo_actions_th_$key'>" ;
+					$boo_hash = ($key=="view" or $key=="edit") ? zig("hash","encrypt","action=".$key.",id=".$id) : zig("hash","encrypt",$key) ;
+					$link = $url."?boo_hash=".$boo_hash ;
+					$actions.= "<a id='boo_actions_image_".$key."' href='$link'>" ;
+				}
+				$actions.= "<img src='".zig("images",$icon)."' />" ;
+				$actions.= "</a>" ;
+				$actions.= "</th>" ;
+			}
+		}
+		$actions.= "</tr>" ;
+		$actions.= "<tr>" ;
+		foreach($op as $key => $icon)
+		{
+			if(!in_array($key,$exclude))
+			{
+				$actions.= "<td align='center'>" ;
+				if($key==$function)
+				{
+					$actions.= "<a id='boo_actions_label_".$key."' href=''>" ;
+					$actions.= "<b>".$key."</b>" ;
+				}
+				else
+				{
+					$boo_hash = ($key=="view" or $key=="edit") ? zig("hash","encrypt","action=".$key.",id=".$id) : zig("hash","encrypt",$key) ;
+					$link = $url."?boo_hash=".$boo_hash ;
+					$actions.= "<a id='boo_actions_label_".$key."' href='$link' onmouseover=\"document.getElementById('boo_actions_th_$key').className='boo_actions_image_hover';\" onmouseout=\"document.getElementById('boo_actions_th_$key').className='boo_actions_image';\">" ;
+					$actions.= $key ;
+				}
+				$actions.= "</a>" ;
+				$actions.= "</td>" ;
+			}
+		}
+		$actions.= "</tr>" ;
+		$actions.= "</table>" ;
+		
+		$buffer = zig("template","file","actions") ;
+		$boo_result['value'] = str_replace("{actions}",$actions,$buffer) ;
+		$boo_result['return'] = 1 ;
+		
+		return $boo_result ;
+	}
+}
+
+}}}

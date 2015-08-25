@@ -1,0 +1,54 @@
+#summary Zig's directory structure
+#labels Featured,Phase-Implementation
+
+= Introduction =
+
+Zig's directory structure
+
+
+= Details =
+{{{
+-zigbin          -- zigbin web root directory
+
+--zig-api        -- zig API directory
+---gui           -- zig GUI related scripts
+----templates    -- zig templates. as of now there is only a default template.
+-----default     -- zig default templates
+----themes       -- zig themes. as of now there is only a default theme.
+-----default     -- zig default theme.
+------img        -- default images
+------css        -- default css
+---info          -- contains information regarding the module
+---lib           -- server side scripts relating to general system operation
+---plugins       -- contains plugins
+---script        -- client side scripts
+---sql           -- sql related scripts
+
+--my-module      -- a sample module. a module that will use the zig API should have the 
+---gui               same structure of zig-api. but these directory is not required if
+----templates        it does not contain any file.
+-----default
+----themes
+-----default
+------img
+------css
+---info
+---lib
+---plugins
+---script
+---sql
+
+--my-other-module -- another sample module. a module that will use the zig API should have
+----gui              the same structure of zig-api. but these directory is not required if
+----templates        it does not contain any file.
+-----default
+----themes
+-----default
+------img
+------css
+---info
+---lib
+---plugins
+---script
+---sql
+}}}

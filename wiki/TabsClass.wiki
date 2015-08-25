@@ -1,0 +1,83 @@
+#summary tabs.lib.php
+
+= Description =
+A class called to set and configure tabs of each module available.  Declared tabs are placed and retrieved in zig_tabs table found in our global database.
+
+= Parameters =
+ * $script
+ * $module
+
+= Return Values =
+ * Returns true or false 
+
+= Source =
+{{{
+
+class zig_tabs
+{
+	function tabs($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		$script = $GLOBALS['zig']['current']['script'] ;
+		$module = $GLOBALS['zig']['current']['module'] ;
+
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+		$sql = "SELECT name FROM $zig_global_database.${pre}applications WHERE directory='$module' LIMIT 1" ;
+		$result = zig("query",$sql,"tabs.lib.php") ;
+		$fetch =  $result->fetchRow() ;
+		$sql = "SELECT name,link,target FROM $zig_global_database.${pre}tabs WHERE module='$fetch[name]' ORDER BY weight ASC" ;
+		$field_result = zig("query",$sql,"tabs.sql.php") ;
+		$tabs_size = $field_result->RecordCount() ;
+		
+		if($tabs_size)
+		{
+			$tabs_size++ ;
+			$table_width = $tabs_size * 10 ;
+			$cell_width = (100 / $tabs_size)."%" ;
+
+			while($field_fetch=$field_result->fetchRow())
+			{
+				$target = isset($field_fetch['target']) ? "target='".$field_fetch['target']."'" : "" ;
+				if(strpos($field_fetch['link'],"/"))
+				{
+					$ripped_value = split("/",$field_fetch['link']) ;
+					$tab_script = end($ripped_value) ;
+				}
+				else
+				{
+					$tab_script = $field_fetch['link'] ;
+				}
+
+				if($tab_script == $script)
+				{
+					$tabs.= "<td class='zig_tab_active' width='$cell_width' onclick=\"window.location='$field_fetch[link]' ;\">" ;
+				}
+				else
+				{
+					$tabs.= "<td width='$cell_width' onclick=\"window.location='$field_fetch[link]' ;\">" ;
+				}
+				$tabs.= $field_fetch['name'] ;
+				$tabs.= "</td>" ;
+			}
+
+			// -- Start new tab
+			$tabs.= "<td width='$cell_width' onclick=\"window.open('$_SERVER[PHP_SELF]','_blank')\">" ;
+//			$tabs.= "<a href='' target='_blank'>" ;
+			$tabs.= "New Tab --&gt;&gt;" ;
+//			$tabs.= "</a>" ;
+			$tabs.= "</td>" ;
+			// -- End new tab
+
+			$buffer = zig("template","file","tabs") ;
+			$buffer = str_replace("{tabs}",$tabs,$buffer) ;
+			$buffer = str_replace("{boo_tabs_table_width}",$table_width."%",$buffer) ;
+		}
+		
+		$boo_result['value'] = $buffer ;
+		$boo_result['return'] = 1 ;
+		
+		return $boo_result ;
+	}
+}
+
+}}}

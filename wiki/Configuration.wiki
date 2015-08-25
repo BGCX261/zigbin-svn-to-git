@@ -1,0 +1,18 @@
+#summary Zig Configuration.
+#labels Featured,Phase-Implementation
+
+= Introduction =
+
+How to configure zig
+
+
+= Details =
+
+Most of the configuration resides on the database at the global database at the "zig_configs" table. Some of the other global configuration resides on ../zig-api/lib/configs.lib.php, but this is being moved to the database if possible.
+
+
+= Set your database =
+
+ On the file "../zig-api/lib/db.lib.php" change the database name, database username and password according to your settings.
+
+ You need to change also the entry on the table "zig_configs" that have the name "zig_global_database". Change the field "value" to your database name.

@@ -1,0 +1,24 @@
+<!-- start dropmenu -->
+<div id="drop">
+	<div class="zig_listing_dropmenu" id="m{column_number}" onmouseover="mcancelclosetime() ;" onmouseout="mclosetime() ;">
+		<div class="zig_listing_dropmenu_category">Sort Page</div>
+			<div class="zig_listing_dropmenu_item" onclick="listing_sort('ascending','{column_number}','{table_id}') ; mclose() ;">&nbsp;&raquo;Ascending</div>
+			<div class="zig_listing_dropmenu_item" onclick="listing_sort('descending','{column_number}','{table_id}') ; mclose() ;">&nbsp;&raquo;Descending</div>
+		<div class="zig_listing_dropmenu_category">Sort Result</div>
+			<div class="zig_listing_dropmenu_item" onclick="listing_sort_by_field('ASC','{fieldname}') ; mclose() ;">&nbsp;&raquo;Ascending</div>
+			<div class="zig_listing_dropmenu_item" onclick="listing_sort_by_field('DESC','{fieldname}') ; mclose() ;">&nbsp;&raquo;Descending</div>
+		<div class="zig_listing_dropmenu_category">Alignment</div>
+			<div class="zig_listing_dropmenu_item" onclick="listing_alignment('left','{column_id}','{column_number}','{table_id}') ; mclose() ;">&nbsp;&raquo;Left</div>
+			<div class="zig_listing_dropmenu_item" onclick="listing_alignment('center','{column_id}','{column_number}','{table_id}') ; mclose() ;">&nbsp;&raquo;Center</div>
+			<div class="zig_listing_dropmenu_item" onclick="listing_alignment('right','{column_id}','{column_number}','{table_id}') ; mclose() ;">&nbsp;&raquo;Right</div>
+		<div class="zig_listing_dropmenu_category">Wrap</div>
+			<div class="zig_listing_dropmenu_item" onclick="listing_nowrap('nowrap','{column_number}','{table_id}') ; mclose() ;">&nbsp;&raquo;No&nbsp;Wrap</div>
+			<div class="zig_listing_dropmenu_item" onclick="listing_nowrap('','{column_number}','{table_id}') ; mclose() ;">&nbsp;&raquo;Wrap</div>
+		<div class="zig_listing_dropmenu_category">Truncation</div>
+			<div class="zig_listing_dropmenu_item" onclick="listing_truncate('yes','{values}') ; mclose() ;">&nbsp;&raquo;Truncate</div>
+			<div class="zig_listing_dropmenu_item" onclick="listing_truncate('no','{values}') ; mclose() ;">&nbsp;&raquo;Dont&nbsp;Trucate</div>
+		<div class="zig_listing_dropmenu_category">Column</div>
+			<div class="zig_listing_dropmenu_item" onclick="listing_show_hide('hide','{column_number}','{table_id}') ; mclose() ;">&nbsp;&raquo;Remove</div>
+	</div>
+</div>
+<!-- end dropmenu -->

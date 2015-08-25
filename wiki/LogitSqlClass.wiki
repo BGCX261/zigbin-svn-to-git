@@ -1,0 +1,64 @@
+#summary logit.sql.php
+
+= Description =
+A class responsible to log in a user calling all the tables and queries.  
+
+= Parameters =
+ * $type
+ * $script
+ * $log_message
+
+= Return Values =
+ * Returns true or false.
+
+= Source =
+{{{
+
+class zig_logit
+{
+	function logit($parameters,$arg1='',$arg2='',$arg3='')
+	{		
+		if($arg1 or $arg2 or $arg3)
+		{
+			$type = $arg1 ;
+			$script = $arg2 ;
+			$log_message = $arg3 ;
+		}
+		else
+		{
+			$type = ( is_array($parameters['type']) and isset($parameters['type']) ) ? $parameters['type'] : "" ;
+			$script = ( is_array($parameters['script']) and isset($parameters['script']) ) ? $parameters['script'] : "" ;
+			$log_message = ( is_array($parameters['log_message']) and isset($parameters['log_message']) ) ? $parameters['log_message'] : "" ;
+		}
+
+		require_once("../zig-api/lib/info.lib.php") ;
+		$info_object = new zig_info ;
+		$user = $info_object->user() ;
+		$pre = $GLOBALS['zig']['sql']['pre'] ;
+		$zig_global_database = $GLOBALS['zig']['sql']['global_database'] ;
+		$script = $GLOBALS['zig']['current']['script'] ;
+		$module = $GLOBALS['zig']['current']['module'] ;
+		$action = $GLOBALS['zig']['current']['action'] ;
+		$sql = "SELECT name FROM `${zig_global_database}`.`${pre}tabs` WHERE module='$module' AND link='$script' LIMIT 1" ;
+		$result = $GLOBALS['zig']['adodb']->Execute($sql) ;
+		$fetch = $result->fetchRow() ;
+		$tab = $fetch['name'] ;
+		$sql = "INSERT INTO `${zig_global_database}`.`${pre}logs` (user,type,module,tab,action,script,log_message) VALUES('$user','$type','$module','$tab','$action','$script',\"$log_message\") " ;
+		$result = $GLOBALS['zig']['adodb']->Execute($sql) ;
+		$error_number = $GLOBALS['zig']['adodb']->ErrorNo() ;
+		
+		if($error_number)
+		{
+			$zig_result['error'].= "Script: $script<br />" ;
+			$zig_result['error'].= "SQL Statement: $sql<br />" ;
+			$zig_result['error'].= "SQL Error: ".$GLOBALS['zig']['adodb']->ErrorMsg() ;
+		}		
+
+		$zig_result['return'] = 1 ;	
+		
+		return $zig_result ;		
+	}
+	
+}
+
+}}}

@@ -1,0 +1,47 @@
+#summary validate - validate entered data
+= validate =
+validate - validate entered data
+
+(zigbin 1.0)
+
+= Description =
+
+ string validate (array parameters) = validate entered data
+
+
+= Parameters =
+
+ type = validate type
+
+ table = database table name
+
+ column_info = column name
+ 
+ field_value = cell value
+
+ id = item id
+
+ 
+
+= Return Value =
+
+ returns FALSE and error statement if data is invalid. if there is no error, it will return TRUE and the validated values.
+
+= Example =
+
+{{{
+<?php
+
+require_once("../zig-api/zigbin.php") ;
+$parameters = array
+(
+  'function' => 'validate',
+  'table'      => 'mytable',
+  'column_info' => 'mycolumn',
+  'field_value' => 'myvalue',
+  'id' => 'myid'
+) ;
+zigbin($parameters) ;
+
+?>
+}}}

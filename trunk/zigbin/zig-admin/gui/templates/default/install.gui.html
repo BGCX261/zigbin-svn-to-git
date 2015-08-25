@@ -1,0 +1,89 @@
+<!-- start install -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+<title>Zigbin | Installation</title>
+<link rel="icon" href="../zig-api/gui/themes/default/img/48x48/actions/wizard.png" type="image/x-ico" />
+<link rel="shortcut icon" href="../zig-api/gui/themes/default/img/48x48/actions/wizard.png" />
+<link href='../zig-api/gui/themes/default/css/main.gui.css' rel='stylesheet' type='text/css' />
+<link href='../zig-admin/gui/themes/default/css/addon.gui.css' rel='stylesheet' type='text/css' />
+</head>
+<body>
+{zig_applications}
+<div class="zig_center">
+	<!-- start messenger -->
+	<div id="div_zig_message">{zig_message}</div>
+    <!-- end messenger -->
+
+    <div id="zig_div_install_content">
+		{zig_install_content}
+    </div>
+</div>
+{zig_footer}
+{zig_jscripts}
+</body>
+</html>
+
+<!-- end install -->
+
+<!-- start database -->
+<h2>Database Details</h2>
+<table class="zig_table_installationFields">
+	<tr>
+    	<td class="zig_fields_label">[Username]</td>
+        <td>:</td>
+		<td><input id="database_username_id" name="database_username" value="root" /></td>
+	</tr>
+	<tr>
+    	<td class="zig_fields_label">[Password]</td>
+	   	<td>:</td>
+	   	<td><input id="database_password_id" name="database_password" /></td>
+	</tr>
+</table>
+<div id="zig_div_install_advance_options">
+	{zig_advance_options}
+</div>
+<br />
+<input onclick="install(this,'{zig_hash}','{zig_hash_install_admin}') ;" type="button" id="installButtonId" value="Install" />
+
+<!-- end database -->
+
+<!-- start advance -->
+<table class="zig_table_installationFields">
+	<tr>
+    	<td class="zig_fields_label">[Host]</td>
+        <td>:</td>
+    	<td><input id="host_id" name="host" value="localhost" /></td>
+	</tr>
+    <tr>
+    	<td class="zig_fields_label">[Database]</td>
+        <td>:</td>
+        <td><input id="database_id" name="database" value="zigbin" /></td>
+    </tr>
+    <tr>
+    	<td class="zig_fields_label">[Default DB]</td>
+        <td>:</td>
+        <td><input type="checkbox" id="default_id" name="default" checked="checked" /></td>
+    </tr>
+</table>
+
+<!-- end advance -->
+
+<!-- start error -->
+{filesPath} directory does not exists<br />
+Create it and make it writable by the web server then refresh this page.<br />
+Use the following commands to create the directory<br />
+su mkdir -p {filesPath}<br />
+chown {webUser}:{webGroup} {filesPath}<br />
+chmod 0774 {filesPath}
+
+<!-- end error -->
+
+<!-- start installing -->
+Installing...
+<input type="hidden" id="installingId" value="1" />
+<input type="hidden" id="zig_hash" value="{zig_hash}" />
+<input type="hidden" id="zig_hash_install_admin" value="{zig_hash_install_admin}" />
+
+<!-- end installing -->

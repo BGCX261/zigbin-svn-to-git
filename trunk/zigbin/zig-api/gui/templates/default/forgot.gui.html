@@ -1,0 +1,15 @@
+<!-- start forgot -->
+<table>
+	<tr>
+		<td>Email:&nbsp;</td>
+		<td><input id="email_id" name="email" class="zig_input_string" /></td>
+	</tr>
+	{captcha}
+	<tr>
+		<td colspan="2">
+        	<div align="center"><input type="button" name="reset" value="Reset Password" onclick="if(document.getElementById('email_id').value=='') alert('Email should not be blank!') ; else zig('div_zig_message','{hashed_values}','','','','email=' + document.getElementById('email_id').value) ;" /></div>
+        </td>
+	</tr>
+</table>
+
+<!-- end forgot -->

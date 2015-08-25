@@ -1,0 +1,282 @@
+#summary wizard.sql.php
+
+= Description =
+A class that serves as a controller for the actions in all the applications. This will lookup to any committed configs in zig_field table.
+
+= Parameters =
+ * $table
+
+= Return Value =
+ * Return zig_info, action and id.
+
+= Source =
+{{{
+class zig_wizard
+{
+	function wizard($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1 or $arg2 or $arg3)
+		{
+			$table = $arg1 ;
+			$search_sql = $arg2 ;
+		}
+		else if(is_array($parameters))
+		{
+			$table = isset($parameters['table']) ? $parameters['table'] : "" ;
+			$table = isset($parameters['search_sql']) ? $parameters['search_sql'] : "" ;
+		}
+
+		zig("security") ;
+
+		$zig_hash = isset($_GET['zig_hash']) ? $_GET['zig_hash'] : (isset($_POST['zig_hash']) ? $_POST['zig_hash'] : '') ;
+		if($zig_hash)
+		{
+			$boo_hash = $zig_hash ;
+		}
+		else
+		{
+			$boo_hash = isset($_GET['boo_hash']) ? $_GET['boo_hash'] : (isset($_POST['boo_hash']) ? $_POST['boo_hash'] : '') ;
+		}
+		$boo_hash_result = $boo_hash ? zig("hash","vars_decode",$boo_hash) : zig("config","zig_action") ;
+
+		if(is_array($boo_hash_result))
+		{
+			$action = $boo_hash_result['action'] ;
+			$id = $boo_hash_result['id'] ;
+			$zig_keyword = (array_key_exists('zig_keyword',$boo_hash_result) and $boo_hash_result['zig_keyword']) ? $boo_hash_result['zig_keyword'] : (isset($_GET['zig_keyword']) ? $_GET['zig_keyword'] : (isset($_POST['zig_keyword']) ? $_POST['zig_keyword'] : '') ) ;
+			$zig_attach = (array_key_exists('zig_attach',$boo_hash_result) and $boo_hash_result['zig_attach']) ? $boo_hash_result['zig_attach'] : (isset($_GET['zig_attach']) ? $_GET['zig_attach'] : (isset($_POST['zig_attach']) ? $_POST['zig_attach'] : '') ) ;
+		}
+		else
+		{
+			$action = $boo_hash_result ;
+			$zig_keyword = isset($_GET['zig_keyword']) ? $_GET['zig_keyword'] : (isset($_POST['zig_keyword']) ? $_POST['zig_keyword'] : '') ;
+			$zig_attach = isset($_GET['zig_attach']) ? $_GET['zig_attach'] : (isset($_POST['zig_attach']) ? $_POST['zig_attach'] : '') ;
+		}
+
+		$boo_action = isset($_GET['boo_action']) ? $_GET['boo_action'] : (isset($_POST['boo_action']) ? $_POST['boo_action'] : '') ;
+		$action = $boo_action ? zig("hash","decrypt",$boo_action) : $action ;
+		$zig_hash_vars = zig("hash","encrypt","action=search,zig_keyword=$zig_keyword,zig_attach=$zig_attach") ;
+		$zig_list_url = $_SERVER['PHP_SELF']."?zig_hash=$zig_hash_vars" ;
+		
+		// Start Permission Check
+		$zig_permission = zig("permissions") ;
+		if(!$zig_permission)
+		{
+			header("Location: ../zig-api/index.php") ;
+			exit() ;
+		}
+		// End Permission Check
+
+		$zig_global_database = zig("config","global_database") ;
+		$pre = zig("config","pre") ;		
+		
+		// Start remove the database name on the table
+		$semi_stripped_table = str_replace($zig_global_database.".","",$table) ;
+		// End remove the database name on the table
+
+		// Start stripped table name
+		$stripped_table = str_replace($pre,"",$semi_stripped_table) ;
+		// End stripped table name
+
+		// -- Start Define Exclude List
+		$zig_user = zig("info","user") ;
+		$zig_group = zig("info","group") ;
+			
+		$permission_sql = "SELECT action,field_name,field_value,permission FROM `${zig_global_database}`.`${pre}permissions` WHERE (users='$zig_user' OR users='$zig_group') AND (field_name<>'' OR field_value<>'') AND field_name<>'all'" ;
+		$permission_result = zig("query",$permission_sql,"wizard.sql.php") ;
+		
+		while($permission_fetch = $permission_result->fetchRow())
+		{
+			if($permission_fetch['field_value'] and $permission_fetch['field_value']<>"all")
+			{
+				$field_value_permissions[$permission_fetch['field_name']][$permission_fetch['action']][$permission_fetch['field_value']] = $permission_fetch['permission'] ;
+			}
+			else
+			{
+				$field_value_permissions[$permission_fetch['field_name']][$permission_fetch['action']] = $permission_fetch['permission'] ;
+			}
+		}
+
+		$exclude = array
+		(
+			'control',
+			'timestamp',
+			'status',
+			'user',
+			'weight'
+		) ;
+		
+		if($action<>"search")
+		{
+			$exclude[] = "id" ;
+		}
+		
+		$permission_sql = "SELECT action,field_name,field_value,permission FROM `${zig_global_database}`.`${pre}permissions` WHERE (users='$zig_user' OR users='$zig_group') AND (field_name<>'' OR field_value<>'') AND action='$action' AND permission='deny'" ;
+		$permission_result = zig("query",$permission_sql,"wizard.sql.php") ;
+		
+		while($permission_fetch = $permission_result->fetchRow())
+		{
+			if(!in_array($permission_fetch['field_name'],$exclude) and !($field_value_permissions[$permission_fetch['field_name']]['view']=="allow" and ($action=="add" or $action=="edit")))
+			{
+				$exclude[] = $permission_fetch['field_name'] ;
+			}
+		}
+		// -- End Field Value Exclude List
+
+		if($action=="search" or $action=="print")
+		{
+			$sql = "SELECT `field` FROM `${zig_global_database}`.`${pre}fields` WHERE (table_name='$table' OR table_name='$semi_stripped_table' OR table_name='$stripped_table') AND attribute='hidden'" ;
+			$result = zig("query",$sql,"wizard.sql.php") ;
+			while($fetch=$result->fetchRow())
+			{
+				$exclude[] = $fetch['field'] ;
+			}
+			
+			$sql = "SHOW COLUMNS FROM $table" ;
+			$result = zig("query",$sql,"wizard.sql.php") ;
+			while($fetch=$result->fetchRow())
+			{
+				if(!in_array($fetch['Field'],$exclude))
+				{
+					$fields.= $fields ? ",`${pre}$stripped_table`.`".$fetch['Field']."`" : "`${pre}$stripped_table`.`".$fetch['Field']."`" ;
+					$search_fields[] = $fetch['Field'] ;
+				}
+			}
+
+		// -- Start Field Value Exclude List
+		$permission_sql = "SELECT field_name,field_value FROM `${zig_global_database}`.`${pre}permissions` WHERE (users='$zig_user' OR users='$zig_group') AND field_value<>'' AND field_value<>'all' AND permission='deny'" ;
+		$permission_result = zig("query",$permission_sql,"wizard.sql.php") ;
+		
+		while($permission_fetch = $permission_result->fetchRow())
+		{
+			if(in_array($permission_fetch['field_name'],$search_fields))
+			{
+				if($permission_fetch['field_name']=="all")
+				{
+//					$exclude_field_value.= " AND $permission_fetch[field_name]<>'$permission_fetch[field_value]' " ;
+				}
+				else
+				{
+					$exclude_field_value.= " AND $permission_fetch[field_name]<>'$permission_fetch[field_value]' " ;
+				}
+			}
+		}
+		// -- End Field Value Exclude List
+
+			
+			$search_sql = $search_sql ? $search_sql : "SELECT $fields FROM $table WHERE `status`<>'deleted' $exclude_field_value ORDER BY id DESC" ;
+			// -- Start check if there is record on this query else change action to Add
+			$result = zig("query",$search_sql." LIMIT 1","wizard.sql.php",false) ;
+			$record = $result->RecordCount() ;
+			$action = $record ? $action : "add" ;
+			if($action<>"search")
+			{
+				$exclude[] = "id" ;
+			}
+			// -- End check if there is record on this query else change action to Add
+		}
+
+		if($action=="add")
+		{
+			$parameters = array
+			(
+				'function'		=>	'add',
+				'table'			=>	$table,
+				'exclude'		=>	$exclude,
+				'permissions'	=>	$field_value_permissions
+			) ;
+		}
+
+		else if($action=="view" or $action=="edit" or ($action=="print" and $id))
+		{
+			if($action=="print")
+			{
+				$function = "view" ;
+				$print_view = true ;
+			}
+			else
+			{
+				$print_view = false ;
+				$function = $action ;
+			}
+
+			$parameters = array
+			(
+				'function'		=>	$function,
+				'table'			=>	$table,
+				'exclude'		=>	$exclude,
+				'id'			=>	$id,
+				'print_view'	=>	$print_view,
+				'zig_list_url'	=>	$zig_list_url,
+				'permissions'	=>	$field_value_permissions
+			) ;
+		}
+
+		else if($action == "void" or $action == "delete")
+		{
+			if($action=="void")
+			{
+				$set = " status='void' " ;
+			}
+			else if($action=="delete")
+			{
+				$set = " status='deleted' " ;
+			}
+			$where = " WHERE id='$id' " ;
+			$parameters = array
+			(
+				'function'	=>	'update',
+				'table'		=>	$table,
+				'set'		=>	$set,
+				'where'		=>	$where,
+				'limit'		=>	'LIMIT 1'
+			) ;
+			
+			zig($parameters) ;
+			unset($parameters) ;
+			$zig_info['action'] = $action ;
+			$action = "search" ;
+		}
+		
+		else if($action == "export")
+		{
+			$search_sql = $search_sql ? $search_sql : $id ? "SELECT * FROM $table WHERE `id`='$id' LIMIT 1" : "SELECT * FROM $table WHERE `status`<>'deleted'"  ;
+			zig("export",$search_sql,$exclude) ;
+			exit() ;
+		}
+		else if($action=="print" and !$id)
+		{
+			$parameters = array
+			(
+				'function'		=>	'listing' ,
+				'sql'			=>	$search_sql ,
+				'row_limit'		=>	0,
+				'print_view'	=>	true,
+				'exclude'		=>	$exclude
+			) ;
+		}
+		
+		if($action == "search")
+		{
+			$parameters = array
+			(
+				'function'		=>	'search' ,
+				'filter_sql'	=>	$search_sql ,
+				'table'			=>	$table,
+				'sql'			=>	$search_sql ,
+				'zig_keyword'	=>	$zig_keyword ,
+				'zig_attach'	=>	$zig_attach ,
+				'trigger_list'	=>	true
+			) ;
+		}
+
+		$zig_return = zig($parameters) ;
+		$zig_info['action'] = ( isset($zig_info['action']) and $zig_info['action'] ) ? $zig_info['action'] : $action ;
+		$zig_info['id'] = $action=="add" ? $zig_return : $id ;
+		$zig_result['value'] = $zig_info ;
+		
+		return $zig_result ;
+	}
+}
+
+}}}

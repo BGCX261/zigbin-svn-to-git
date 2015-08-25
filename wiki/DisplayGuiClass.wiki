@@ -1,0 +1,97 @@
+#summary display.gui.php
+
+= Description =
+A class called to call display contents of each templates depending on the parameters given.
+
+= Parameters =
+ * $print_view
+ * $content
+ * $topmenu
+ * $applications
+ * $action
+ * $tabs
+ * $side_dock
+ * $function
+ * $id
+ * $messenger
+
+= Return Value =
+ * Returns a buffer.
+
+= Source =
+{{{
+class zig_display
+{
+	function display($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+		
+		}
+		else if(is_array($parameters))
+		{
+			$print_view = $parameters['print_view'] ;
+			$content = $parameters['buffer'] ;
+			$topmenu = $parameters['topmenu'] ;
+//			$header = $parameters['header'] ;
+			$applications = $parameters['applications'] ;
+			$actions = $parameters['actions'] ;
+			$tabs = $parameters['tabs'] ;
+			$side_dock = $parameters['side_dock'] ;
+			$side_dock = 0 ;
+			$function = $parameters['function'] ;
+			$id = $parameters['id'] ;
+			$messenger = $parameters['messenger'] ;
+			if($messenger)
+			{
+				$messenger_parameters = $parameters ;
+				$messenger_parameters['function'] = "messenger" ;
+			}
+			// -- Side Dock Temporarily Disabled (Way Mu PALAG!!!)
+		}
+
+		$buffer = $this->display_body($content) ;
+		if($print_view)
+		{
+			$buffer = $parameters['print_sub_header'] ? zig("print_view","print_sub_header").$buffer : $buffer ;
+			$buffer = $parameters['print_header'] ? zig("print_view","print_header").$buffer : $buffer ;
+			$buffer.= $parameters['print_sub_footer'] ? zig("print_view","print_sub_footer") : '' ;
+			$buffer.= $parameters['print_footer'] ? zig("print_view","print_footer") : '' ;
+		}
+		else
+		{
+			$side_dock = $side_dock ? $this->display_side_dock() : '' ;
+			$buffer = str_replace("{side_dock}",$side_dock,$buffer) ;
+			$buffer = $actions ? zig("actions",$function,$id).$buffer : $buffer ;
+			$buffer = $messenger ? str_replace("{message}",zig($messenger_parameters),$buffer) : $buffer ;
+			$buffer = $tabs ? zig("tabs").$buffer : $buffer ;
+//			$buffer = $header ? zig("display_header").$buffer : $buffer ;
+			$buffer = $applications ? zig("applications").$buffer : $buffer ;
+			$buffer = $topmenu ? zig("topmenu").$buffer : $buffer ;
+			$buffer.= $parameters['trigger'] ? zig("trigger",$function,$id) : '' ;
+			$buffer.= $parameters['footer'] ? zig("footer") : '' ;
+		}
+		$buffer = zig("wrapper",$buffer,$function) ;
+		$buffer = zig("jscripts",$buffer,"zigjax") ;
+		$buffer = zig("jscripts",$buffer,$function) ;
+		print $buffer ;
+	}
+
+	function display_side_dock()
+	{
+		$buffer = zig("template","file","side_dock") ;
+		$buffer = str_replace("{side_dock}","Zigbin Side Dock",$buffer) ;
+		
+		return $buffer ;
+	}
+
+	function display_body($content)
+	{
+		$buffer = zig("template","file","body") ;
+		$buffer = str_replace("{content}",$content,$buffer) ;
+		
+		return $buffer ;
+	}
+}
+
+}}}

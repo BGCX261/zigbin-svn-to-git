@@ -1,0 +1,100 @@
+#summary authenticate.lib.php
+
+= Description =
+
+An object that authenticate users of Zigbin and it’s modules via database or LDAP.
+
+= Parameters =
+
+username
+
+password
+
+= Return Value =
+
+* Database = returns record count.
+
+* LDAP = returns true or false.
+
+= Class =
+
+{{{
+
+class zig_authenticate
+{
+	function authenticate($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$method = $arg1 ;
+			$username = $arg2 ;
+			$password = $arg3 ;
+		}
+		else
+		{
+			$method = $parameters['method'] ;
+			$username = $parameters['username'] ;
+			$password = $parameters['password'] ;
+		}
+		
+		$zig_result['value'] = $this->$method($method,$method,$username,$password) ;
+		$zig_result['return'] = 1 ;
+		
+		return $zig_result ;
+	}
+	
+	function database($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$method = $arg1 ;
+			$username = $arg2 ;
+			$password = $arg3 ;
+		}
+		else
+		{
+			$method = $parameters['method'] ;
+			$username = $parameters['username'] ;
+			$password = $parameters['password'] ;
+		}
+
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+		$sql = "SELECT id,expiration FROM $zig_global_database.${pre}users WHERE username='$username' AND password=PASSWORD('$password') LIMIT 1" ;
+		$authenticate_result = zig("query",$sql,"authenticate.lib.php",false) ;
+		$record_count = $authenticate_result->RecordCount() ;
+		if($record_count)
+		{
+			$authenticate_result->MoveFirst() ;
+			$zig_fetch = $authenticate_result->fetchRow() ;
+			$current_date = date("Y-m-d") ;
+			if($zig_fetch['expiration'] < $current_date and $zig_fetch['expiration']<>"" and $zig_fetch['expiration']<>NULL)
+			{
+				$record_count = 0 ;
+			}
+		}
+		
+		return $record_count ;
+	}
+	
+	function ldap($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$method = $arg1 ;
+			$username = $arg2 ;
+			$password = $arg3 ;
+		}
+		else
+		{
+			$method = $parameters['method'] ;
+			$username = $parameters['username'] ;
+			$password = $parameters['password'] ;
+		}
+
+		$zig_result = zig("ldap","authenticate",$username,$password) ;
+		return $zig_result ;
+	}
+}
+
+}}}

@@ -1,0 +1,32 @@
+#summary Using Zigbin
+#labels Featured,Phase-Implementation
+
+= Introduction =
+
+Using Zigbin
+
+= Details =
+
+  To integrate zig with your module or just simply using an object, just include the zig main script (../zig-api/zigbin.php), set the parameters (will depend on the function being called) and then execute the zigbin function (zigbin(parameters)).
+
+Example
+
+{{{
+<?php
+/* Call the main zigbin main script */
+require_once("../zig-api/zigbin.php"); 
+
+
+/* Set the parameters in array format or just directly give your values within the function (this will depend on the function, see the function manual for details) */
+
+$parameters = array
+(
+'function' => 'export',           /* The function to be called */
+'type' => 'csv',                  /* Function setting (see function manual) */
+'sql' => 'SELECT * FROM my_table' /* Function setting (see function manual) */
+);
+
+/* Execute zigbin */
+zig($parameters) ;
+?>
+}}}

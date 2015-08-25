@@ -1,0 +1,60 @@
+#summary extract.sql.php
+
+= Description =
+A class called whenever an sql need to be extracted from database.  There are other configs found in the database which builds and construct sql.  These sql passes through in our extract.sql.php object.
+
+= Parameters =
+ * $sql
+
+= Return Values =
+* Returns true or false.
+
+= Source =
+{{{
+
+class zig_extract
+{
+    function extract($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		print_r($parameters);
+		if($arg1 or $arg2 or $arg3)
+			{
+				$sql = $arg1 ;
+			}
+			else if(is_array($parameters))
+			{
+			$sql = $parameters['sql'] ;
+
+			}
+
+
+		    {
+				$extract_sql = spliti("select ",$sql) ;
+	            $extract_sql = spliti(" from ",$extract_sql[1]) ;
+				$extract_sql2 = spliti(" where ",$extract_sql[1]) ;
+				$extract_sql3 = spliti(" group by ",$extract_sql[1]) ;
+				$extract_sql4 = spliti(" order by ",$extract_sql[1]) ;
+				$extract_sql5 = spliti(" limit ",$extract_sql[1]) ;
+	            $fields1 = $extract_sql[0] ;
+	            $fields = str_replace("`","",$fields1) ;
+				$extract_sql = split(" ",$extract_sql[1]) ;
+				$table = $extract_sql[0] ;
+				$extract_sql2 = split(" ",$extract_sql2[1]) ;
+				$condition = $extract_sql2[0] ;
+				$extract_sql3 = split(" ",$extract_sql3[1]) ;
+				$group = $extract_sql3[0] ;
+				$extract_sql4 = split(" ",$extract_sql4[1]) ;
+				$order = $extract_sql4[0] ;
+				$extract_sql5 = split(" ",$extract_sql5[1]) ;
+				$limit = $extract_sql5[0] ;
+	
+	
+			}
+
+	$zig_result['return'] = 1 ;
+	return $zig_result ;
+
+	}
+}
+
+}}}

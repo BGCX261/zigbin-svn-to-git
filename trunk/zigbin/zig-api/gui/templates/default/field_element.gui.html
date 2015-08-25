@@ -1,0 +1,242 @@
+<!-- start computed -->
+<input type="hidden" id='{current_field_name}_id_{uniqueString}' name="{tableName}_{current_field_name}" value="{fieldValue}" 
+	{attribute_script} />
+{fieldDescription}
+
+<!-- end computed -->
+
+<!-- start fieldDiv edit -->
+{fieldElement}
+
+<!-- end fieldDiv edit -->
+
+<!-- start checkbox unchecked view -->
+<input type="checkbox" id='{current_field_name}_id_{uniqueString}' value="0" disabled="disabled" />
+{fieldDescription}
+
+<!-- end checkbox unchecked view -->
+
+<!-- start checkbox checked view -->
+<img src="{src}" />
+{fieldDescription}
+
+<!-- end checkbox checked view -->
+
+<!-- start checkbox unchecked add -->
+<input type="checkbox" id='{current_field_name}_id_{uniqueString}' name="{tableName}_{current_field_name}" value="0" 
+	{attribute_script} />{requiredFlag}
+{fieldDescription}
+
+<!-- end checkbox unchecked add -->
+
+<!-- start checkbox checked add -->
+<input type="checkbox" checked="checked" id='{current_field_name}_id_{uniqueString}' name="{tableName}_{current_field_name}" value="1" 
+	{attribute_script} />{requiredFlag}
+{fieldDescription}
+
+<!-- end checkbox checked add -->
+
+<!-- start checkbox unchecked edit -->
+<input type="checkbox" id='{current_field_name}_id_{uniqueString}' name="{tableName}_{current_field_name}" value="0" 
+	onclick="listingCheckCheckbox(this,'{zigHash}');" {attribute_script} />{requiredFlag}
+{fieldDescription}
+
+<!-- end checkbox unchecked edit -->
+
+<!-- start checkbox checked edit -->
+<input type="checkbox" checked="checked" id='{current_field_name}_id_{uniqueString}' name="{tableName}_{current_field_name}" value="1" 
+	onclick="listingCheckCheckbox(this,'{zigHash}');" {attribute_script} />{requiredFlag}
+{fieldDescription}
+
+<!-- end checkbox checked edit -->
+
+<!-- start input add -->
+<input maxlength='{field_data_size}' id='{current_field_name}_id_{uniqueString}' name="{tableName}_{current_field_name}" 
+	value="{fieldValue}" {attribute_script} />{requiredFlag}
+<span id="zig_field_countdown_{current_field_name}_{uniqueString}" class="zig_field_countdown"></span>
+{fieldDescription}
+
+<!-- end input add -->
+
+<!-- start input edit -->
+<input maxlength='{field_data_size}' id='{current_field_name}_id_{uniqueString}' name="{tableName}_{current_field_name}" 
+	value="{fieldValue}" {attribute_script} />{requiredFlag}
+<span id="zig_field_countdown_{current_field_name}_{uniqueString}" class="zig_field_countdown"></span>
+{fieldDescription}
+
+<!-- end input edit -->
+
+<!-- start input view -->
+<span id="zig_span_value_{current_field_name}_{uniqueString}">{escaped_data}</span>
+
+<!-- end input view -->
+
+<!-- start input view blank -->
+<span id="zig_span_value_{current_field_name}_{uniqueString}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+
+<!-- end input view blank -->
+
+<!-- start password add -->
+<input maxlength='{field_data_size}' id='{current_field_name}_id_{uniqueString}' name="{tableName}_{current_field_name}" type="password" 
+	value="{fieldValue}" {attribute_script} />{requiredFlag}
+<span id="zig_field_countdown_{current_field_name}_{uniqueString}" class="zig_field_countdown"></span>
+{fieldDescription}
+
+<!-- end password add -->
+
+<!-- start password view -->
+[hidden]
+
+<!-- end password view -->
+
+<!-- start password edit view -->
+<span id="zig_span_value_{current_field_name}_{uniqueString}">[hidden]</span>
+{fieldDescription}
+
+<!-- end password edit view -->
+
+<!-- start password edit -->
+<input maxlength='{field_data_size}' type="password" id='{current_field_name}_id_{uniqueString}' name="{tableName}_{current_field_name}" 
+	value="" {attribute_script} />{requiredFlag}
+<span id="zig_field_countdown_{current_field_name}_{uniqueString}" class="zig_field_countdown"></span>
+{fieldDescription}
+
+<!-- end password edit -->
+
+<!-- start date add -->
+<input id="{current_field_name}_id_{uniqueString}" name="{tableName}_{current_field_name}" value="{fieldValue}" 
+	{attribute_script} />{requiredFlag}
+<img onmousedown='cal_onButtonClick(event)' id='zig_calendar_{current_field_name}_id_{uniqueString}' class='calendarbutton' 
+	title='calendar' datepicker_inputid="{current_field_name}_id_{uniqueString}" datepicker_format='{date_format}' 
+	style='position: relative; cursor: pointer; vertical-align: bottom;' src='../zig-api/gui/themes/default/img/16x16/actions/cal.gif'/>
+{fieldDescription}
+
+<!-- end date add -->
+
+<!-- start date edit -->
+<input id="{current_field_name}_id_{uniqueString}" name="{tableName}_{current_field_name}" value="{fieldValue}" 
+	{attribute_script} />{requiredFlag}
+<img onmousedown='cal_onButtonClick(event)' id='zig_calendar_{current_field_name}_id_{uniqueString}' class='calendarbutton' 
+	title='calendar' datepicker_inputid="{current_field_name}_id_{uniqueString}" datepicker_format='{date_format}' 
+	style='position: relative; cursor: pointer; vertical-align: bottom;' src='../zig-api/gui/themes/default/img/16x16/actions/cal.gif'/>
+{fieldDescription}
+
+<!-- end date edit -->
+
+<!-- start text add -->
+<textarea maxlength='{field_data_size}' id="{current_field_name}_id_{uniqueString}" name="{tableName}_{current_field_name}" 
+	{attribute_script}>{fieldValue}</textarea>{requiredFlag}
+<span id="zig_field_countdown_{current_field_name}_{uniqueString}" class="zig_field_countdown"></span>
+{fieldDescription}
+
+<!-- end text add -->
+
+<!-- start text edit -->
+<textarea maxlength='{field_data_size}' id='{current_field_name}_id_{uniqueString}'	name="{tableName}_{current_field_name}"	
+	{attribute_script}>{fieldValue}</textarea>{requiredFlag}
+<span id="zig_field_countdown_{current_field_name}_{uniqueString}" class="zig_field_countdown"></span>
+{fieldDescription}
+
+<!-- end text edit -->
+
+<!-- start file add -->
+<span id="zig_span_value_{current_field_name}_{uniqueString}"></span>
+<div id="zig_div_input_add_{current_field_name}_{uniqueString}">
+	<input type="file" id="{current_field_name}_id_{uniqueString}" name="{tableName}_{current_field_name}" 
+		onchange="zig_viewField('zig_span_value_{current_field_name}_{uniqueString}','zig_div_input_add_{current_field_name}_{uniqueString}',this,'{zigHash}','{current_field_name}','fileLinks_{current_field_name}_{uniqueString}','uploadLinks_{current_field_name}_{uniqueString}','{passedUniqueString}') ;" 
+	/>{requiredFlag}
+	<input type="hidden" id="{current_field_name}_id_{uniqueString}_zigHiddenFileName" name="{tableName}_{current_field_name}_zigHiddenFileName" value="" />
+	{fieldDescription}
+</div>
+
+<!-- end file add -->
+
+<!-- start file view -->
+<span id="zig_span_value_{current_field_name}_{uniqueString}">{escaped_data}</span>
+
+<!-- end file view -->
+
+<!-- start file edit -->
+<div id="zig_div_input_edit_{current_field_name}_{uniqueString}" class="zig_invisible">
+	<input type="file" id="{current_field_name}_id_{uniqueString}" name="{tableName}_{current_field_name}" value="{escaped_data}" 
+		onchange="zig_viewField('zig_span_value_{current_field_name}_{uniqueString}','zig_div_input_edit_{current_field_name}_{uniqueString}',this,'{zigHash}','{current_field_name}','fileLinks_{current_field_name}_{uniqueString}','uploadLinks_{current_field_name}_{uniqueString}','{passedUniqueString}') ;" 
+	/>{requiredFlag}
+	{fieldDescription}
+</div>
+
+<!-- end file edit -->
+
+<!-- start fileLinks -->
+<div id="fileLinks_{current_field_name}_{uniqueString}">
+	<a href="javascript: void(0) ;" onclick="window.open('../zig-api/decoder.php?zig_hash={zig_decode_hash}') ;">[download]</a>
+	<a href="javascript: void(0) ;" onclick="removeFile('zig_span_value_{current_field_name}_{uniqueString}','zig_div_input_edit_{current_field_name}_{uniqueString}','{current_field_name}_id_{uniqueString}','{zigHash}','{current_field_name}','fileLinks_{current_field_name}_{uniqueString}','uploadLinks_{current_field_name}_{uniqueString}') ;">[remove]</a>
+</div>
+
+<!-- end fileLinks -->
+
+<!-- start select add -->
+<select id='{current_field_name}_id_{uniqueString}' 
+	name="{tableName}_{current_field_name}" 
+	class="zig_droplist" {attribute_script}>
+	{select_options_buffer}
+</select>{requiredFlag}
+{fieldDescription}
+
+<!-- end select add -->
+
+<!-- start select edit -->
+<select id='{current_field_name}_id_{uniqueString}' name="{tableName}_{current_field_name}" 
+	class="zig_droplist" {attribute_script}>
+	{select_options_buffer}
+</select>{requiredFlag}
+{fieldDescription}
+
+<!-- end select edit -->
+
+<!-- start thumbnail -->
+<div id="zig_div_image_preview_id_{current_field_name}" class="zig_image_hidden_preview">
+	<img src="../zig-api/decoder.php?zig_hash={zig_decode_hash}" {preview_width} {preview_height} onclick="window.open('../zig-api/decoder.php?zig_hash={zig_decode_hash}') ;" onmouseout="zig_preview('zig_div_image_preview_id_{current_field_name}','hide') ;" />
+</div>
+<img src="../zig-api/decoder.php?zig_hash={zig_decode_hash}" {width} {height} onclick="zig_preview('zig_div_image_preview_id_{current_field_name}','show') ;" />
+
+<!-- end thumbnail -->
+
+<!-- start thumbnail view -->
+<span id="zig_span_value_{current_field_name}_{uniqueString}">
+	<div id="zig_div_image_preview_id_{current_field_name}" class="zig_image_hidden_preview">
+        <img src="../zig-api/decoder.php?zig_hash={zig_decode_hash}" {preview_width} {preview_height} onclick="window.open('../zig-api/decoder.php?zig_hash={zig_decode_hash}') ;" onmouseout="zig_preview('zig_div_image_preview_id_{current_field_name}','hide') ;" />
+    </div>
+	<img src="../zig-api/decoder.php?zig_hash={zig_decode_hash}" {width} {height} onclick="zig_preview('zig_div_image_preview_id_{current_field_name}','show') ;" />
+</span>
+
+<!-- end thumbnail view -->
+
+<!-- start thumbnail edit -->
+<div id="zig_div_input_edit_{current_field_name}_{uniqueString}" class="zig_invisible">
+	<input type="file" id="{current_field_name}_id_{uniqueString}" name="{tableName}_{current_field_name}" value="{escaped_data}" 
+		onchange="zig_viewField('zig_span_value_{current_field_name}_{uniqueString}','zig_div_input_edit_{current_field_name}_{uniqueString}',this,'{zigHash}','{current_field_name}','fileLinks_{current_field_name}_{uniqueString}','uploadLinks_{current_field_name}_{uniqueString}','{passedUniqueString}') ;" 
+	/>{requiredFlag}
+	{fieldDescription}
+</div>
+
+<!-- end thumbnail edit -->
+
+<!-- start thumbnailLinks -->
+<div id="fileLinks_{current_field_name}_{uniqueString}">
+	<a href="javascript: void(0) ;" onclick="resetToEdit('zig_span_value_{current_field_name}_{uniqueString}','zig_div_input_edit_{current_field_name}_{uniqueString}','{current_field_name}_id_{uniqueString}','fileLinks_{current_field_name}_{uniqueString}','uploadLinks_{current_field_name}_{uniqueString}') ;">[change]</a>
+	<a href="javascript: void(0) ;" onclick="removeFile('zig_span_value_{current_field_name}_{uniqueString}','zig_div_input_edit_{current_field_name}_{uniqueString}','{current_field_name}_id_{uniqueString}','{zigHash}','{current_field_name}','fileLinks_{current_field_name}_{uniqueString}','uploadLinks_{current_field_name}_{uniqueString}') ;">[remove]</a>
+</div>
+
+<!-- end thumbnailLinks -->
+
+<!-- start uploadLinks -->
+<div id="uploadLinks_{current_field_name}_{uniqueString}" class="zig_invisible">
+	<a href="javascript: void(0) ;" onclick="resetToView('zig_span_value_{current_field_name}_{uniqueString}','zig_div_input_edit_{current_field_name}_{uniqueString}','fileLinks_{current_field_name}_{uniqueString}','uploadLinks_{current_field_name}_{uniqueString}') ;">[cancel]</a>
+</div>
+
+<!-- end uploadLinks -->
+
+<!-- start requiredFlag -->
+<span class="requiredFlag">*</span>
+
+<!-- end requiredFlag -->

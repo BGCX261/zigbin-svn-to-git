@@ -1,0 +1,56 @@
+#summary string_format.lib.php
+
+= Description =
+A class called for string formatting.  The usual string comes from database entries and table fields which passed through this object to reformat it in an understandable manner.
+
+= Parameters =
+ * $string
+ * $method
+ * $new_string
+
+= Return Values =
+ * Returns true and the new string.
+
+= Source =
+{{{
+
+class zig_string_format
+{
+	function string_format($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$string = $arg1 ;
+			$method = $arg2 ;
+		}
+		else
+		{
+			$string = $parameters['string'] ;
+			$method = $parameters['method'] ;
+		}
+
+		$new_string = $this->$method($string) ;
+		$boo_result['return'] = 1 ;
+		$boo_result['value'] = $new_string ;
+		
+		return $boo_result ;
+	}
+	
+	function titlecase($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		$string = $parameters ;
+		
+		$splitted_string = split(" ",$string) ;
+		foreach($splitted_string as $value)
+		{
+			$character = substr($value,0,1) ;
+			$character = strtoupper($character) ;
+			$new_string.= substr_replace($value,$character,0,1)." " ;
+		}
+		$new_string = trim($new_string) ;
+		
+		return $new_string ;
+	}
+}
+
+}}}

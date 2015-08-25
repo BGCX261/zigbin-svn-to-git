@@ -1,0 +1,37 @@
+#summary export - data export
+#labels Phase-Implementation,Featured
+= export =
+export - data export
+(zigbin 1.0)
+
+= Description =
+
+ string export (array parameters) = export database data to a file
+
+
+= Parameters =
+
+ type = export type
+
+ sql = SQL statement
+
+= Return Value =
+
+ returns error statement if there is an error. if there is no error, it will return the completed exported data.
+
+= Example =
+
+{{{
+<?php
+
+require_once("../zig-api/zigbin.php") ;
+$parameters = array
+(
+  'function' => 'export',
+  'type'     => 'csv',
+  'sql'      => 'SELECT * FROM mytable'
+) ;
+zigbin($parameters) ;
+
+?>
+}}}

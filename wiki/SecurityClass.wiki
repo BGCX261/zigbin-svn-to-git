@@ -1,0 +1,62 @@
+#summary security.lib.php
+
+= Description =
+A class responsible for the whole zigbin security.  It calls the hash class for hashing the URL and setup cookie and sessions.
+
+= Parameters =
+ * $cookie
+ * $host
+ * $url
+ * $boo_hash
+
+= Return Values =
+ * Returns true or false
+
+= Source =
+{{{
+
+class zig_security
+{
+	function security($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($_COOKIE['boo_hash']=="")
+		{
+			$zig_hash = isset($_GET['boo_hash']) ? $_GET['boo_hash'] : (isset($_POST['boo_hash']) ? $_POST['boo_hash'] : '') ;
+			$zig_hash = $zig_hash ? "?boo_hash=".$zig_hash : '' ;
+			$current_url = $_SERVER['PHP_SELF'].$zig_hash ;
+			$zig_hash = zig("hash","encrypt",$current_url) ;
+			header("Location: ../zig-api/index.php?zig_hash=$zig_hash") ;
+			exit() ;
+		}
+		else if(!session_id())
+		{
+			session_start() ;
+		}
+			
+		$boo_hash_vars = zig("hash","vars_decode",$_COOKIE['boo_hash']) ;
+		if(session_id()<>$boo_hash_vars['session_id'])
+		{
+			header("Location: ../zig-api/index.php") ;
+			exit() ;
+		}
+			
+		$cookie = $GLOBALS['zig']['default']['cookie'] ;
+		$host = $_SERVER['HTTP_HOST'] ;
+		$url = $boo_hash_vars['url'] ;
+		$boo_hash = $_COOKIE['boo_hash'] ;
+
+		// Start renew cookie expiration
+		if(!headers_sent())
+		{
+			setcookie("boo_hash",$boo_hash,$cookie,$url,$host) ;
+		}
+		// Start extend cookie expiration
+		
+		$zig_result['value'] = 1 ;
+		$zig_result['return'] = 1 ;
+		
+		return $zig_result ;
+	}
+}
+
+}}}

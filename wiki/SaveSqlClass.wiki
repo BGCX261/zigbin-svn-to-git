@@ -1,0 +1,250 @@
+#summary save.sql.php
+
+= Description =
+zig_save is one of the most important class in zigbin.  This class is responsible for inserting, updating, and deleting of datas in the database.
+
+
+= Parameters =
+ * $table
+ * $method
+ * $parent_id
+ * $parent_table
+ * $mode
+ * $id
+ * $zig_global_database
+ * $validation
+
+= Return Value =
+ * Return true or false from value of id and validation.
+
+= Source =
+{{{
+class zig_save
+{
+	function save($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		$table = $parameters['table'] ;
+		$exclude = $parameters['exclude'] ;
+		$method = $parameters['method'] ;
+		$parent_id = $parameters['parent_id'] ;
+		$parent_table = $parameters['parent_table'] ;
+		$mode = $parameters['mode'] ;
+		$id = $parameters['id'] ;
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+		$validation = true ;
+
+		// Start remove the database name on the table
+		$semi_stripped_table = str_replace($zig_global_database.".","",$table) ;
+		$semi_stripped_parent_table = str_replace($zig_global_database.".","",$parent_table) ;
+		// End remove the database name on the table
+
+		// Start stripped table name
+		$stripped_table = str_replace($pre,"",$semi_stripped_table) ;
+		$stripped_parent_table = str_replace($pre,"",$semi_stripped_parent_table) ;
+		// End stripped table name
+		
+		$children = 1 ;
+		if($method=="child")
+		{
+			if($mode=="edit")
+			{
+				// -- Start get child SQL
+				$fields = "*" ;
+				$sql = "SELECT `sql_statement` FROM `$zig_global_database`.`${pre}relationships` WHERE (`parent_table`='$parent_table' OR `parent_table`='$semi_stripped_parent_table' OR `parent_table`='$stripped_parent_table' OR `parent_table`='all tables') AND (`child_table`='$table' OR `child_table`='$semi_stripped_table' OR `child_table`='$stripped_table' OR `child_table`='all tables') LIMIT 1" ;
+				$child_result = zig("query",$sql,"save.lib.php") ;
+				$child_fetch = $child_result->fetchRow() ;
+				eval("\$sql = \"$child_fetch[sql_statement]\";") ;
+				$data_result = zig("query",$sql,"save.lib.php") ;
+				$orig_children = $data_result->RecordCount() ;
+				unset($fields) ;
+				// -- Start get child SQL
+			}
+			$children = isset($_GET[$semi_stripped_table.'_children']) ? $_GET[$semi_stripped_table.'_children'] : (isset($_POST[$semi_stripped_table.'_children']) ? $_POST[$semi_stripped_table.'_children'] : '') ;
+		}
+
+		$sql = "SELECT * FROM $zig_global_database.${pre}fields WHERE (table_name='$table' OR table_name='$semi_stripped_table' OR table_name='$stripped_table')" ;
+		$field_result = zig("query",$sql,"save.sql.php") ;
+		while($field_fetch = $field_result->fetchRow())
+		{
+			$field_info[$field_fetch['field']] = $field_fetch ;
+		}
+
+		$sql = "SHOW COLUMNS FROM $table" ;
+		$result = zig("query",$sql,"save.sql.php",false) ;
+
+		while($children)
+		{
+			$children-- ;
+			if($method=="child")
+			{
+				$old_kid++ ;
+				$child_field_patch = "_".$old_kid ;
+			}
+
+			if($mode=="edit")
+			{
+				if($method=="child")
+				{
+					$data_fetch = $data_result->fetchRow() ;
+					$id = $data_fetch['id'] ;
+				}
+				if($id)
+				{
+					$sql = "SELECT * FROM ${zig_global_database}.${pre}$stripped_table WHERE id='$id' LIMIT 1" ;
+					$orig_data_result = zig("query",$sql,"save.sql.php") ;
+					$orig_data_fetch = $orig_data_result->fetchRow() ;
+				}
+			}
+			
+			$result->MoveFirst() ;
+			while($fetch=$result->fetchRow())
+			{
+				$field_fetch = $field_info[$fetch['Field']] ;
+				if(in_array($fetch['Field'],$exclude) or ($mode=="edit" and ($field_fetch['attribute']=="hidden" or $field_fetch['attribute']=="readonly")))
+				{
+					continue ;
+				}
+				$column_info[$fetch['Field']] = $fetch ;
+
+				if(isset($field_fetch['code']) and ($field_fetch['attribute']=="hidden" or $field_fetch['attribute']=="readonly"))
+				{
+					// -- Start assign default values
+					$code = $field_fetch['code'] ;
+					switch ($field_fetch['code_type'])
+					{
+						case "php" :
+							$default = eval($code) ;
+							break ;
+						case "sql" :
+							eval("\$sql = \"$field_fetch[code]\";") ;
+							$default_result = zig("query",$sql,"save.sql.php") ;
+							$default_fetch = $default_result->fetchRow() ;
+							$array_size = count($default_fetch)/2 ;
+							$array_location = 0 ;
+							while($array_location<$array_size)
+							{
+								$default.= $default ? ", ".$default_fetch[$array_location] : $default_fetch[$array_location] ;
+								$array_location++ ;
+							}
+							break ;
+					}
+					// -- End assign default values
+					$field_value[$fetch['Field']] = $default ;
+				}
+				else
+				{
+					switch($field_fetch['field_type'])
+					{
+						case "file":
+							if($_FILES[$fetch['Field'].$child_field_patch]['name'])
+							{
+								$splitted_filename = split("\.",$_FILES[$fetch['Field'].$child_field_patch]['name']) ;
+								$file_extension = (sizeof($splitted_filename)>1) ? ".".$splitted_filename[sizeof($splitted_filename)-1] : "" ;
+								$table_status_sql = "SHOW TABLE STATUS LIKE '${pre}$stripped_table'" ;
+								$table_status_result = zig("query",$table_status_sql,"save.sql.php") ;
+								$table_status_fetch = $table_status_result->fetchRow() ;
+								$filename = "${zig_global_database}.${pre}$stripped_table.$table_status_fetch[Auto_increment]$file_extension" ;
+								$field_value[$fetch['Field']] = "$stripped_table.$table_status_fetch[Auto_increment]${file_extension}" ;
+								$files_path = zig("config","files path") ;
+								$file_attachment = $files_path.$filename ;
+								if( !(file_exists($files_path.$filename) and $mode=="add") )
+								{
+									move_uploaded_file($_FILES[$fetch['Field'].$child_field_patch]['tmp_name'],$file_attachment) ;
+								}
+							}
+							break ;
+						default:
+							$field_value[$fetch['Field']] = isset($_GET[$fetch['Field'].$child_field_patch]) ? $_GET[$fetch['Field'].$child_field_patch] : (isset($_POST[$fetch['Field'].$child_field_patch]) ? $_POST[$fetch['Field'].$child_field_patch] : '') ;
+					}
+				}
+
+				if($field_value[$fetch['Field']]<>"" and ($mode=="add" or ($mode=="edit" and !$id)))
+				{
+					if($fields and $values)
+					{
+						$fields.= "," ;
+						$values.= "," ;
+					}
+					$fields.= "`".$fetch['Field']."`" ;
+					$values.= $field_fetch['attribute']=="password" ? "PASSWORD('".$field_value[$fetch['Field']]."')" : "'".trim($field_value[$fetch['Field']])."'" ;
+				}
+				else if($mode=="edit" and strcmp($orig_data_fetch[$fetch['Field']],$field_value[$fetch['Field']]))
+				{
+					$field_value[$fetch['Field']] = $field_value[$fetch['Field']]=='' ? "NULL" : $field_value[$fetch['Field']] ;
+					$set = $set ? $set."," : $set ;
+					switch($field_value[$fetch['Field']])
+					{
+						case "NULL":
+							$set.= "`".$fetch['Field']."`=".$field_value[$fetch['Field']]." " ;
+							break ;
+					
+						default:
+							$set.= $field_fetch['attribute']=="password" ? "`".$fetch['Field']."`=PASSWORD('".$field_value[$fetch['Field']]."') " : "`".$fetch['Field']."`='".trim($field_value[$fetch['Field']])."' " ;
+							break ;
+					}
+				}
+			}
+
+			$zig_validate_parameters = array
+			(
+				'function'		=>	'validate' ,
+				'column_info'	=>	$column_info ,
+				'field_value'	=>	$field_value ,
+				'table'			=>	$table ,
+				'id'			=>	$id ,
+			) ;
+			$boo_result = zig($zig_validate_parameters) ;
+
+			if($boo_result['validation'])
+			{
+				$validation*= true ;
+				if($mode=="add" or ($mode="edit" and !$id))
+				{
+					$fields.= ",user" ;
+					$values.= ",'".zig("info","user")."'" ;
+					$zig_array_result['id'] = zig("insert",$table,$fields,$values) ;
+					$zig_hash = zig("hash","encrypt","action=view,id=".$zig_array_result['id']) ;
+					$link = $_SERVER['PHP_SELF']."?zig_hash=".$zig_hash ;
+					$boo_result['message'] = $method=="parent" ? "Data Added <a href='$link'>[view]</a>" : "" ;
+				}
+				else if($set)
+				{
+					$zig_array_result['id'] = zig("update",$table,$set,"WHERE id=$id LIMIT 1") ;
+					$message.= $method=="child" ? $boo_result['message'] : "" ;
+					$boo_result['message'] = $method=="parent" ? "Data Updated" : $boo_result['message'].$message ;
+				}
+		
+				unset($fields,$values,$set) ;
+			}
+			else
+			{
+				$validation*= false ;
+				if($method=="parent")
+				{
+					break ;
+				}
+			}
+		}
+		
+		$zig_remove = isset($_GET["zig_remove_${semi_stripped_table}"]) ? $_GET["zig_remove_${semi_stripped_table}"] : (isset($_POST["zig_remove_${semi_stripped_table}"]) ? $_POST["zig_remove_${semi_stripped_table}"] : false) ;
+		if($zig_remove and $validation)
+		{
+			$splitted_zig_remove = split(",",$zig_remove) ;
+			$set = "status='deleted'" ;
+			foreach($splitted_zig_remove as $zig_remove_id)
+			{
+				zig("update",$table,$set,"WHERE id=$zig_remove_id LIMIT 1") ;
+			}
+		}
+		
+		$zig_array_result['message'] = $boo_result['message'] ;
+		$zig_array_result['validation'] = $validation ;
+		$zig_array_result['return'] = 1 ;
+		$zig_return['value'] = $zig_array_result ;
+
+		return $zig_return ;
+	}
+}
+
+}}}

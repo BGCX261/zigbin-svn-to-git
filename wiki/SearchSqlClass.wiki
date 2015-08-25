@@ -1,0 +1,127 @@
+#summary search.sql.php
+
+= Description =
+A class having a search function that executes searching on every table of every application.
+
+= Parameters =
+ * function
+ * filter_sql
+
+= Return Value =
+ * Returns a buffer
+
+= Source =
+{{{
+class zig_search
+{
+	function search($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		// -- Start Define Exclude List
+		$exclude = array
+		(
+			'id',
+			'control',
+			'timestamp',
+			'status',
+			'user',
+			'weight'
+		) ;
+		// -- End Define Exclude List
+
+		$filter_parameters = array
+		(
+			'function'	=>	'filters',
+			'filters'	=>	$parameters[filters],
+			'sql'		=>	$parameters[filter_sql],
+			'exclude'	=>	$exclude,
+			'gui_buffer'=>	0,
+			'return'	=>	3
+		) ;
+
+		$zig_keyword = (array_key_exists('zig_keyword',$parameters) and $parameters['zig_keyword']) ? $parameters['zig_keyword'] : NULL ;
+		$zig_attach = (array_key_exists('zig_attach',$parameters) and $parameters['zig_attach']) ? $parameters['zig_attach'] : NULL ;
+		$boo_result = zig($filter_parameters) ;
+		$boo_filter['value'] = $boo_result['value'] ;
+
+		if($zig_keyword or $_POST['zig_basic_search'] or $_POST['zig_advanced_search'] or $_POST['boo_current_page'] or (isset($parameters['trigger_list']) and $parameters['trigger_list']) )
+		{
+			if($zig_keyword)
+			{
+				$boo_filter['config']['zig_keyword'] = $zig_keyword ;
+			}
+			if($zig_attach)
+			{
+				$boo_filter['config']['attach'] = $zig_attach ;
+			}
+			$boo_filter['config']['function'] = "attach" ;
+			$zig_attach = zig($boo_filter['config']) ;
+			$where = $boo_filter['value'] ? " where ".$boo_filter['value'] : "" ;
+			$sql = $parameters['sql'] ;
+
+			if($zig_keyword)
+			{
+				unset($where) ;
+				$splitted_sql = spliti(" from ",$sql) ;
+				$splitted_sql[1] = trim($splitted_sql[1]) ;
+				$splitted_sql = split(" ",$splitted_sql[1]) ;
+				$splitted_sql[0] = trim($splitted_sql[0]) ;
+				$splitted_tables = split(",",$splitted_sql[0]) ;
+				foreach($splitted_tables as $table)
+				{
+					$splitted_table = split("\.",$table) ;
+					unset($table) ;
+					foreach($splitted_table as $escaped_tables)
+					{
+						$table.= $table ? ".`".$escaped_tables."`" : "`".$escaped_tables."`" ;
+					}
+					$field_sql = "SHOW COLUMNS FROM $table" ;
+					$field_result = zig("query",$field_sql,"search.sql.php") ;
+					while($field_fetch=$field_result->fetchRow())
+					{
+						if($field_fetch['Field']<>"weight")
+						{
+							$where.= $where ? " OR ".$table.".`".$field_fetch['Field']."`LIKE '%".$zig_keyword."%'" : " WHERE ( ".$table.".".$field_fetch['Field']."='".$zig_keyword."'" ;
+						}
+					}
+					$where.= " ) " ;
+				}
+			}
+			if(stripos($sql," where ") and $where)
+			{
+				$sql = str_ireplace(" where "," $where AND ",$sql) ;
+			}
+			else if($where)
+			{
+				$sql.= $where ;
+			}
+
+			$table = $parameters['table'] ;
+			$listing_parameters = array
+			(
+				'function'		=>	'listing',
+				'table'			=>	$table,
+				'sql'			=>	$sql,
+				'zig_keyword'	=>	$zig_keyword,
+				'zig_attach'	=>	$zig_attach,
+				'gui_buffer'	=>	0,
+				'return'		=>	3
+			) ;
+
+			if(isset($parameters['row_limit']))
+			{
+				$listing_parameters['row_limit'] = $parameters['row_limit'] ;
+			}
+			$boo_listing = zig($listing_parameters) ;
+			if(isset($boo_listing['warning']))
+			{
+				$boo_result['warning'] = $boo_listing['warning'] ;
+			}
+			$boo_result['buffer'].= $boo_listing['buffer'] ;
+			$boo_result['buffer'] = str_replace("{zig_keyword}",$zig_keyword,$boo_result['buffer']) ;
+		}
+		
+		return $boo_result ;
+	}
+}
+
+}}}

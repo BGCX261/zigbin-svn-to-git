@@ -1,0 +1,31 @@
+#summary listing - data listing
+#labels Featured,Phase-Implementation
+= listing =
+ listing – search result listing
+
+ (zigbin v1.0)
+
+= Description =
+ string listing(array parameters) = create search result listing 
+
+= Parameters =
+ sql = SQL Statement
+
+ attach = data to be attached on the listing object (usually used internally) 
+
+= Return Value =
+ returns error statement if an error is encountered. if no error on the process, it will return the completed listing. 
+
+= Example =
+{{{
+<?php
+require_once("../zig-api/zigbin.php");
+
+$parameters = array
+(
+'function' => 'listing',
+'sql'	   => 'SELECT * FROM mytable'
+);
+
+zig($parameters) ;
+?>

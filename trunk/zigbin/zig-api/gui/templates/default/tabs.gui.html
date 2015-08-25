@@ -1,0 +1,34 @@
+<!-- start tabs -->
+<div id="div_zig_tabs" align="center">
+	<table id="zig_tabs_table_id" width="{zig_tabs_table_width}">
+		<tr>
+			{tabs}
+		</tr>
+	</table>
+</div>
+
+<!-- end tabs -->
+
+<!-- start tabs filler -->
+<div id="div_zig_tabs_filler">&nbsp;</div>
+
+<!-- end tabs filler -->
+
+<!-- start tab -->
+<td class="zig_td_tab" width="{cell_width}" onclick="zig_tabs('zig_tabs_table_id','{counter}','{link}') ;">
+	<div id="zig_tab_link_name_{counter}" class="{class}">{tabName}</div>
+</td>
+
+<!-- end tab -->
+
+<!-- start sub tabs cell -->
+<td class='{class}' width='{cell_width}'>{sub_tabs}</td>
+
+<!-- end sub tabs cell -->
+
+<!-- start sub div -->
+<div class="zig_div_sub_tabs">
+	{sub_tabs}
+</div>
+
+<!-- end sub div -->

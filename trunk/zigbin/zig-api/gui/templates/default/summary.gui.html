@@ -1,0 +1,56 @@
+<!-- start summary header -->
+<fieldset id="zig_fieldset_summary_id" class="{zig_fieldset_collapsed_class}">
+<legend>&bull; <a href="javascript:return void(0) ;" onclick="zig_fieldset('zig_fieldset_summary_id','div_summary') ; if(document.getElementById('zig_fieldset_summary_id').className=='zig_fieldset_displayed'){zig('div_summary','{zig_hash_parameters}')} ;">Summary</a></legend>
+<div id="div_summary" class="{zig_invisible_class}">
+
+<!-- end summary header -->
+
+<!-- start summary subheader -->
+	<table>	
+		<tr>
+			<th>Category</th>
+			<th>Records</th>
+            {total_subheader}
+            <th>Chart</th>
+		</tr>
+ 
+<!-- end summary subheader -->
+
+<!-- start summary labels -->
+		<tr>
+			<td colspan="{column_span}"><div class="zig_subheader">{category}</div></td>
+            <td rowspan="{norec}">{chart}</td>
+		</tr>
+ 
+<!-- end summary labels -->
+
+<!-- start summary row -->
+		<tr>
+			<td>&nbsp;&nbsp;{category}</td>
+			<td><div class="zig_numeric_cell">{records}</div></td>
+            {total_row}
+            <td>&nbsp;</td>
+		</tr>
+
+<!-- end summary row -->
+
+<!-- start summary subfooter -->
+	</table>
+
+<!-- end summary subfooter -->
+
+<!-- start summary footer -->
+</div>
+</fieldset>
+
+<!-- end summary footer -->
+
+<!-- start summary total subheader -->
+            <th>{total_label}</th>
+ 
+<!-- end summary total subheader -->
+
+<!-- start summary total row -->
+            <td><div class="zig_numeric_cell">{total}</div></td>
+ 
+<!-- end summary total row -->

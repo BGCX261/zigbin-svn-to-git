@@ -1,0 +1,57 @@
+#summary Zigbin SQL classes.
+
+= SQL Classes =
+
+=== zig_add ===
+[http://code.google.com/p/zigbin/wiki/AddSqlClass]
+
+=== zig_droplist ===
+[http://code.google.com/p/zigbin/wiki/DroplistSqlClass]
+
+=== zig_edit ===
+[http://code.google.com/p/zigbin/wiki/EditSqlClass]
+
+=== zig_export ===
+[http://code.google.com/p/zigbin/wiki/ExportSqlClass]
+
+=== zig_extract ===
+[http://code.google.com/p/zigbin/wiki/ExtractSqlClass]
+
+=== zig_filters ===
+[http://code.google.com/p/zigbin/wiki/FiltersSqlClass]
+
+=== zig_insert ===
+[http://code.google.com/p/zigbin/wiki/InsertSqlClass]
+
+=== zig_listing ===
+[http://code.google.com/p/zigbin/wiki/ListingSqlClass]
+
+=== zig_logit ===
+[http://code.google.com/p/zigbin/wiki/LogitSqlClass]
+
+=== zig_query ===
+[http://code.google.com/p/zigbin/wiki/QuerySqlClass]
+
+=== zig_save ===
+[http://code.google.com/p/zigbin/wiki/SaveSqlClass]
+
+=== zig_search ===
+[http://code.google.com/p/zigbin/wiki/SearchSqlClass]
+
+=== zig_summary ===
+[http://code.google.com/p/zigbin/wiki/SummarySqlClass]
+
+=== zig_update ===
+[http://code.google.com/p/zigbin/wiki/UpdateSqlClass]
+
+=== zig_update_field ===
+[http://code.google.com/p/zigbin/wiki/UpdatefieldSqlClass]
+
+=== zig_validate ===
+[http://code.google.com/p/zigbin/wiki/ValidateSqlClass]
+
+=== zig_view ===
+[http://code.google.com/p/zigbin/wiki/ViewSqlClass]
+
+=== zig_wizard===
+[http://code.google.com/p/zigbin/wiki/WizardSqlClass]

@@ -1,0 +1,20 @@
+<!-- start trigger -->
+<div id="div_zig_triggers">
+	<table>
+    	{custom_triggers}
+		<tr>
+			<th id="zig_trigger_save_image" class='zig_actions_image'><div align="center"><a onclick="document.getElementById('zig_save').value=1; {form_name}.submit();"><img src="{save_image}" alt="save"/></a></div></th>
+			<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+			<th id="zig_trigger_reset_image" class='zig_actions_image'><div align="center"><a onclick="return confirm('This will clear the data in you fields\nContinue reset?');" href=""><img src="{reset_image}" /></a></div></th>
+		</tr>
+		<tr>
+			<td><div align="center"><a id="zig_trigger_save" onmouseover="document.getElementById(this.id + '_image').className='zig_actions_image_hover';" onmouseout="document.getElementById(this.id + '_image').className='zig_actions_image';" onclick="document.getElementById('zig_save').value=1; {form_name}.submit();">Save</a></div></td>
+			<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+			<td><div align="center"><a id="zig_trigger_reset" onmouseover="document.getElementById(this.id + '_image').className='zig_actions_image_hover';" onmouseout="document.getElementById(this.id + '_image').className='zig_actions_image';" onclick="return confirm('This will clear the data in you fields\nContinue reset?');" href="">Reset</a></div></td>
+		</tr>
+	</table>
+	<input id="zig_save" name="zig_save" value="" type="hidden" />
+	<br />
+</div>
+
+<!-- end trigger -->

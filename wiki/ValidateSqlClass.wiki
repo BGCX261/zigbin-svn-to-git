@@ -1,0 +1,179 @@
+#summary validate.sql.php
+
+= Description =
+A class that checks the validity of data for the table data types. This is checked for every table.
+
+= Parameters =
+ * $column_info
+ * $field_value
+ * $table
+ * $id
+
+= Return Value =
+ * Returns true or false for validation.
+
+= Source =
+{{{
+class zig_validate
+{
+	function validate($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$column_info = $arg1 ;
+			$field_value = $arg2 ;
+			$table = $arg3 ;
+		}
+		else
+		{
+			$column_info = $parameters['column_info'] ;
+			$field_value = $parameters['field_value'] ;
+			$table = $parameters['table'] ;
+			$id = $parameters['id'] ;
+		}
+
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+		$return_values['validation'] = $validation = true ;
+
+
+		// Start remove the database name on the table
+		$semi_stripped_table = str_replace($zig_global_database.".","",$table) ;
+		// End remove the database name on the table
+
+		// Start stripped table name
+		$stripped_table = str_replace($pre,"",$semi_stripped_table) ;
+		// End stripped table name
+		
+		
+		foreach($column_info as $key => $value)
+		{
+			// -- Start get field max size
+			$splitted_type = split(" ",$value['Type']) ;
+			$attribute = isset($splitted_type[1]) ? $splitted_type[1] : '' ;
+			$splitted_type[0] = str_replace("("," ",$splitted_type[0]) ;
+			$splitted_size = split(" ",$splitted_type[0]) ;
+			$size = isset($splitted_size[1]) ? str_replace(")","",$splitted_size[1]) : '' ;
+			$type = $splitted_size[0] ;
+			// -- End get field max size
+			if($field_value[$key]<>"")
+			{
+				switch($type)
+				{
+					case "int":
+						$validation = is_numeric($field_value[$key]) ? true : false ;
+						if($validation)
+						{
+							$splitted_field_value = split("\.",$field_value[$key]) ;
+							$validation = $splitted_field_value[1] ? false : true ;
+						}
+						$return_values['message'].= $validation ? "" : "ERROR: $key \"".$field_value[$key]."\" should be an integer<br />" ;
+						break ;
+				
+					case "float":
+						$validation = is_numeric($field_value[$key]) ? true : false ;
+						$return_values['message'].= $validation ? "" : "ERROR: $key \"".$field_value[$key]."\" should be numeric<br />" ;
+						break ;
+
+					case "double":
+						$validation = is_numeric($field_value[$key]) ? true : false ;
+						$return_values['message'].= $validation ? "" : "ERROR: $key \"".$field_value[$key]."\" should be numeric<br />" ;
+						break ;
+				 
+				     case "tinytext":
+		                   $size = 255 ;
+			  			   break ;
+					
+					 case "text":
+						   $size = 65535 ;
+			     		   break ;
+					
+					 case "blob":
+						   $size = 65535;
+						   break ;	
+											
+					 case "mediumtext":
+						   $size = 16777215 ;
+		                   break ;		
+					
+					 case "mediumblob":
+						   $size = 16777215 ;
+						   break ;		
+						
+				     case "longtext":
+						   $size = 4294967295 ;
+			               break ;		
+						
+				     case "longblob":
+						   $size = 4294967295 ;
+						   break ;	
+							
+				    case "date":
+						if($field_value[$key])
+						{
+							list($year,$month,$day) = explode("-",$field_value[$key]) ;
+							$validation = checkdate($month,$day,$year) ? true : false ;
+							$return_values['message'].= $validation ? "" : "ERROR: $key \"".$field_value[$key]."\" invalid date<br />" ;
+						}
+						break ;
+				}
+			}
+			
+			// -- Start unique field check
+			if($value['Key']=="UNI")
+			{
+				$current_field_value = $field_value[$key] ;
+				if($id)
+				{
+					$exclude_self = " AND id<>'$id' " ;
+				}
+				$sql = "SELECT $key FROM $zig_global_database.${pre}$stripped_table WHERE $key='$current_field_value' $exclude_self LIMIT 1" ;
+				$result = zig("query",$sql,"validate.sql.php") ;
+				if($result<>"")
+				{
+					$row_total = $result->RecordCount() ;
+					if($row_total)
+					{
+						$validation*= false ;
+						$return_values['message'].= "ERROR: $key \"".$$current_field_value."\" already exists<br />" ;
+					}
+				}
+			}
+			// -- End unique field check
+
+			// -- Start null field check
+			if($value['Null']=="NO" and ($field_value[$key]=='' or $field_value[$key]=="NULL"))
+			{
+				$validation*= false ;
+				$return_values['message'].= "ERROR: \"".$key."\" must not be blank<br />" ;
+			}
+			// -- End null field check
+			
+			// -- Start field attribute check
+			if($attribute=="unsigned" and $field_value[$key]<0)
+			{
+				$validation*= false ;
+				$return_values['message'].= "ERROR: $key \"".$field_value[$key]."\" must not be a negative value<br />" ;
+			}
+			// -- End field attribute check
+
+			// -- Start check length check
+			if($size <= strlen($field_value[$key]) and $size)
+			{
+				$validation*= false ;
+				$return_values['message'].= "ERROR: $key \"".$field_value[$key]."\" too long, max length is [$size]<br />" ;
+			}
+			// -- End check length check
+
+			$return_values['invalid_fields'][$key] = $validation ? false : true  ;
+			$return_values['validation']*= $validation ? true : false  ;
+		}
+
+		$zig_return['value'] = $return_values ;
+		$zig_return['return'] = 1 ;
+		return $zig_return ;
+	}
+	
+}
+
+}}}

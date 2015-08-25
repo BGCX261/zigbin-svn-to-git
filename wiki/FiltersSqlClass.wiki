@@ -1,0 +1,314 @@
+#summary filters.sql.php
+
+= Description =
+A class called to declare which table and fields from the database is suppose to appear with the records.  
+
+= Parameters =
+ * $sql
+ * $filters
+ * $exclude
+
+= Return Values =
+ * Returns a filtered data.
+
+= Source =
+{{{
+
+
+class zig_filters
+{
+	function filters($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		//print_r($parameters);
+		
+		if($arg1 or $arg2 or $arg3)
+		{
+			$sql = $arg1 ;
+			$filters = $arg2 ;
+			$exclude = $arg3 ;
+		}
+		else if(is_array($parameters))
+		{
+			$sql = isset($parameters['sql']) ? $parameters['sql'] : "" ;
+			$filters = isset($parameters['filters']) ? $parameters['filters'] : "" ;
+			$exclude = isset($parameters['exclude']) ? $parameters['exclude'] : "" ;
+		}
+
+		$zig_global_database = zig("config","global_database") ;
+		$pre = zig("config","pre") ;		
+		
+		$sql = stripos($sql," limit ") ? $sql : $sql." LIMIT 1" ;
+		// Start table process
+		$result = zig("query",$sql,"filters.sql.php") ;
+		$record = $result->RecordCount() ;
+		
+		if($record)
+		{
+			$columns = zig('fetchcol',$result,1) ;
+			foreach($columns as $values)
+			{
+				if(in_array($values,$exclude))
+				{
+					continue ;
+				}
+				$parameters['filters'][] = array
+				(
+					'fname'			=>	$values,
+					'vname'			=>	$values,
+					'type'			=>	'input',
+					'visible'		=>	1
+				) ;
+			}				
+		}
+		else
+		{
+			$filter_sql = str_ireplace("select ","",$sql) ;
+			$ripped_sql = spliti(" from ",$filter_sql) ;
+			$ripped_sql = spliti(",",$ripped_sql[0]) ;
+			if(trim($ripped_sql[0])=="*")
+			{
+				$ripped_sql = spliti(" from ",$sql) ;
+				$filter_tables = split(",",$ripped_sql[1]) ;
+				foreach($filter_tables as $table)
+				{
+					$table = trim($table) ;
+					if($filter_tables[sizeof($filter_tables)-1]==$table)
+					{
+						$ripped_last_table = split(" ",$table) ;
+						$table = $ripped_last_table[0] ;
+					}
+					// Start remove the database name on the table
+					$semi_stripped_table = str_replace($zig_global_database.".","",$table) ;
+					// End remove the database name on the table
+
+					// Start stripped table name
+					$stripped_table = str_replace($pre,"",$semi_stripped_table) ;
+					// End stripped table name					
+					$field_sql = "SHOW COLUMNS FROM `${zig_global_database}`.`${pre}$stripped_table`" ;
+					$field_result = zig("query",$field_sql,"filters.sql.php") ;
+					$titlecase_table = str_replace("_"," ",$stripped_table) ;
+					$titlecase_table = zig("string_format",$titlecase_table,"titlecase") ;
+					$parameters['filters'][] = array
+					(
+						'fname'			=>	$titlecase_table,
+						'vname'			=>	$titlecase_table,
+						'type'			=>	'optgroup',
+						'visible'		=>	1
+					) ;
+					while($field_fetch = $field_result->fetchRow())
+					{
+						$field = $field_fetch['Field'] ;
+						if(in_array($field,$exclude))
+						{
+							continue ;
+						}
+						$parameters['filters'][] = array
+						(
+							'fname'			=>	$field,
+							'vname'			=>	$field,
+							'type'			=>	'input',
+							'visible'		=>	1
+						) ;
+					}
+				}
+			}
+			else
+			{
+				foreach($ripped_sql as $field)
+				{
+					$field = trim($field) ;
+					if(in_array($field,$exclude))
+					{
+						continue ;
+					}					
+					$parameters['filters'][] = array
+					(
+						'fname'			=>	$field,
+						'vname'			=>	$field,
+						'type'			=>	'input',
+						'visible'		=>	1
+					) ;					
+				}
+			}			
+		}
+		// End table process
+		
+		$boo_remove = isset($_GET['boo_remove']) ? $_GET['boo_remove'] : (isset($_POST['boo_remove']) ? $_POST['boo_remove'] : '') ;
+		$boo_include = isset($_GET['boo_include']) ? $_GET['boo_include'] : (isset($_POST['boo_include']) ? $_POST['boo_include'] : '') ;
+		$ripped_boo_remove = split(",",$boo_remove) ;
+		$ripped_boo_include = split(",",$boo_include) ;
+		$add = ($_POST['boo_add']=="add") ? $_POST['boo_filter_select'] : '' ;
+
+		
+		$operators = "<option value='='>=</option>
+			<option value='<'>&lt;</option>
+			<option value='>'>&gt;</option>
+			<option value='<='>&le;</option>
+			<option value='>='>&ge;</option>
+			<option value='!='>&ne;</option>
+			<option value='LIKE'>LIKE</option>" ;
+
+		$buffer.= zig("template","block","filters","filter header") ;
+		
+		foreach($parameters['filters'] as $ref => $filters)
+		{
+			$vname = $filters['vname'] ;
+			$fname = $filters['fname'] ;
+			$remove = $_POST["remove_$vname"] ;
+			$type = $filters['type'] ;			
+			
+			if($remove=="remove")
+			{
+				$filters['set'] = 0 ;
+				$boo_remove .= $vname."," ;
+				$boo_include = str_replace($vname.",","",$boo_include) ;
+				$ripped_boo_include = split(",",$boo_include) ;				
+			}
+			
+			if($filters['set']<>0)
+			{
+				foreach($ripped_boo_remove as $value)
+				{
+					if($value==$vname and $add<>$value)
+					{
+						$filters['set'] = 0 ;
+						break ;
+					}
+				}
+			}
+
+			if($add==$vname)
+			{
+				$filters['set'] = 1 ;
+				$boo_include.= $vname."," ;
+				$boo_remove = str_replace($vname.",","",$boo_remove) ;
+				$ripped_boo_remove = split(",",$boo_remove) ;
+			}
+
+			if($filters['set']<>1)
+			{
+				foreach($ripped_boo_include as $value)
+				{
+					if($value==$vname)
+					{
+						$filters['set'] = 1 ;
+					}
+				}
+			}
+
+			if($filters['set']==1 and $filters['visible']==1)
+			{
+				$op_vname = "op_".$vname ;
+				$op_value = $_POST[$op_vname] ? $_POST[$op_vname] : "=" ;
+				$default = $filters['default'] ;
+				if(isset($filters['default']) or isset($_POST[$vname]))
+				{
+					$value = isset($_POST[$vname]) ? $_POST[$vname] : $default ;
+				}
+				$boo_filter_data[$vname] = $value ;
+				$boo_filter_data[$op_vname] = $op_value ;
+				$list = $filters['list'] ;
+				$list = $list ? str_replace("value='$value'","value='$value' selected='selected'",$list) : $list ;
+
+				$buffer.= zig("template","block","filters","filter rows") ;
+				$buffer = str_replace("{action}","<input type='submit' name='remove_$vname' value='remove'>",$buffer) ;
+				$buffer = str_replace("{filter}",$filters['fname'],$buffer) ;
+
+				if($type<>"checkbox")
+				{
+					if(is_array($filters['operators']))
+					{
+						foreach($filters['operators'] as $op)
+						{
+							$custom_op.= "<option value='$op'>$op</option>" ;
+						}
+					}
+					else
+					{
+						$custom_op = "<option value='$filters[operators]'>$filters[operators]</option>" ;
+					}
+					$ops = $filters['operators'] ? $custom_op : $operators ;
+					$op_buffer = "<select name='op_$vname'>$ops</select>" ;
+					$op_buffer = $op_value ? str_replace("value='$op_value'","value='$op_value' selected='selected'",$op_buffer) : $op_buffer ;
+
+				}
+				$buffer = str_replace("{op}",$op_buffer,$buffer) ;
+
+				switch($type)
+				{
+					case "input":
+					$buffer = str_replace("{values}","<input type='input' name='$vname' value='$value'>",$buffer) ;
+					break ;
+				
+					case "droplist":
+					$buffer = str_replace("{values}","<select name='$vname'>$list</select>",$buffer) ;
+					break ;
+				
+					case "checkbox":
+					$buffer = str_replace("{values}","<input type='checkbox' name='$vname' value='$value'>",$buffer) ;
+					break ;
+				}
+
+				$buffer = str_replace("{description}",$filters['description'],$buffer) ;
+				$where = ($where and isset($value)) ? $where." AND " : $where ;
+				$operator = $_POST[$op_vname] ? $_POST[$op_vname] : "<>" ;
+				$like_op = ($operator=="LIKE") ? "%" : "" ;
+				$where = isset($value) ? $where."$vname $operator '$like_op$value$like_op'" : $where ;
+				$fields = $fields ? $fields."," : $fields ;
+				$fields.= "$vname" ;
+			}
+			if($filters['visible']==1)
+			{
+				switch($type)
+				{
+					case "optgroup":
+						$filter_select.= $filter_select ? "</optgroup><optgroup label='$fname'>" : "<optgroup label='$fname'>" ;
+						break ;
+					case "input":
+						$filter_select.= "<option value='$vname'>$fname</option>" ;
+						break ;
+				}
+			}
+		}
+		$filter_select.= in_array("optgroup",$filters) ? "</optgroup>" : "" ;
+
+		if($filter_select<>"")
+		{
+			$buffer.= zig("template","block","filters","filter rows") ;
+			$buffer = str_replace("{action}","<input type='submit' name='boo_add' value='add' />",$buffer) ;
+			$buffer = str_replace("{filter}","<select name='boo_filter_select'>$filter_select</select>",$buffer) ;
+			$buffer = str_replace("{op}","",$buffer) ;
+			$buffer = str_replace("{values}","&lt;&lt;--Select filter&nbsp;&nbsp;&nbsp;&nbsp;",$buffer) ;
+			$buffer = str_replace("{description}","Select &amp; Add new filter",$buffer) ;
+		}
+		
+		$buffer.= zig("template","block","filters","filter footer") ;
+		$buffer = str_replace("{boo_include}","<input type='hidden' name='boo_include' value='$boo_include' />",$buffer) ;
+		$buffer = str_replace("{boo_remove}","<input type='hidden' name='boo_remove' value='$boo_remove' />",$buffer) ;
+
+		// -- Start fieldset
+		$buffer = zig("jscripts",$buffer,"fieldset") ;
+		$buffer = str_replace("{zig_invisible_class}","zig_invisible",$buffer) ;
+		$buffer = str_replace("{zig_fieldset_collapsed_class}","zig_fieldset_collapsed",$buffer) ;
+		$buffer = str_replace("{zig_fieldset_displayed_class}","zig_fieldset_displayed",$buffer) ;
+		// -- End fieldset
+
+		$boo_result['buffer'] = $buffer ;
+		$boo_result['value'] = $_POST['zig_advanced_search'] ? $where : "" ;
+		$boo_result['form'] = 1 ;
+		$boo_result['config']['boo_include'] = $boo_include ;
+		$boo_result['config']['boo_remove'] = $boo_remove ;
+
+		if($boo_filter_data<>"")
+		{
+			foreach($boo_filter_data as $key => $value)
+			{
+				$boo_result['config'][$key] = $value ;
+			}
+		}
+		
+		return $boo_result ;
+	}
+}
+
+}}}

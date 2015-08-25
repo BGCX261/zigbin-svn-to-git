@@ -1,0 +1,48 @@
+#summary insert.sql.php
+
+= Description =
+A class called by zig_save class to insert data into the database.
+
+= Parameters =
+ * $table
+ * $fields
+ * $values
+
+= Return Values =
+ * Returns true or false.
+
+= Source =
+{{{
+
+class zig_insert
+{
+	function insert($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$table = $arg1 ;
+			$fields = $arg2 ;
+			$values = $arg3 ;
+		}
+		else
+		{
+			$table = $parameters['table'] ;
+			$fields = $parameters['fields'] ;
+			$values = $parameters['values'] ;
+		}
+		
+		$sql = "INSERT INTO $table ( $fields ) VALUES( $values )" ;
+		$GLOBALS['zig']['adodb']->Execute($sql) ;
+		$boo_result['value'] = $GLOBALS['zig']['adodb']->Insert_ID() ;
+		$boo_result['return'] = 1 ;
+
+		require_once("../zig-api/sql/logit.sql.php") ;
+		$logit_object = new zig_logit ;
+		$logit_object->logit("logit","sql","query.sql.php","$sql\n$error_number") ;
+		
+		print_r($boo_result);
+		return $boo_result ;
+	}
+}
+
+}}}

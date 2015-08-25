@@ -1,0 +1,270 @@
+#summary trigger.gui.php
+
+= Description =
+A class that specify triggers to common actions to all applications. 
+Actions: view, edit, print, export, void, delete
+Triggers: trigger_view, trigger_edit, trigger_print, trigger_export, trigger_void, trigger_delete
+
+= Parameters =
+ * $actions
+ * $id
+ * $sql
+
+= Return Value =
+ * Returns a specified action true or false.
+
+= Source =
+{{{
+class zig_trigger
+{
+	function trigger($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		
+		if($arg1 or $arg2 or $arg3)
+		{
+			$action = $arg1 ;
+			$id = $arg2 ;
+			$sql = $arg3 ;
+		}
+		else if(is_array($parameters))
+		{
+			$action = array_key_exists("action",$parameters) ? $parameters['action'] : NULL ;
+			$id = array_key_exists("id",$parameters) ? $parameters['id'] : NULL ;
+			$sql = array_key_exists("sql",$parameters) ? $parameters['sql'] : NULL ;
+		}
+		
+		if($action=="view" or $action=="listing")
+		{
+			$boo_result['value'] = $this->common($action,$id,$sql) ;
+		}
+		else
+		{
+			$boo_result['value'] = $this->add_edit($action) ;
+		}
+		
+		$boo_result['return'] = 1 ;
+		
+		return $boo_result ;
+	}
+	
+	
+	function common($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		$id = $arg1 ;
+		$php_self = $_SERVER['PHP_SELF'] ;
+		$action = $parameters ;
+		$buffer.= "<table>" ;
+		$buffer.= "<tr>" ;
+
+		if($action=="listing")
+		{
+			// -- Start view image
+			$boo_hash_view = zig("hash","encrypt","view") ;
+			$buffer.= "<th id='boo_trigger_view_image' class='boo_invisible'>" ;
+			$buffer.= "<div id='div_zig_trigger_view_image' class='{boo_trigger_class}'>" ;
+			$buffer.= "<a onclick=\"return listing_multiple_trigger('view','$boo_hash_view') ;\">" ;
+			$image = zig("images","32x32/actions/viewmag.png") ;
+			$buffer.= "<img src='$image' />" ;
+			$buffer.= "</a>" ;
+			$buffer.= "</div>" ;
+			$buffer.= "</th>" ;
+			// -- End view image
+
+			// -- Start edit image
+			$boo_hash_edit = zig("hash","encrypt","edit") ;
+			$buffer.= "<th id='boo_trigger_edit_image' class='boo_invisible'>" ;
+			$buffer.= "<div id='div_zig_trigger_edit_image' class='{boo_trigger_class}'>" ;
+			$buffer.= $action=="listing" ? "<a onclick=\"return listing_multiple_trigger('edit','$boo_hash_edit') ;\">" : "<a>" ;
+			$image = zig("images","32x32/actions/edit.png") ;
+			$buffer.= "<img src='$image' />" ;
+			$buffer.= "</a>" ;
+			$buffer.= "</div>" ;
+			$buffer.= "</th>" ;
+			// -- End edit image
+		}
+
+		// -- Start print image
+		$zig_hash_print = "action=print,id=".$id ;
+		$zig_hash_print = zig("hash","encrypt",$zig_hash_print) ;
+		$zig_link_print = $php_self."?zig_hash=".$zig_hash_print ;
+		$boo_hash_print = zig("hash","encrypt","print") ;
+		$buffer.= "<th id='boo_trigger_print_image' class='boo_actions_image'>" ;
+		$buffer.= "<a target='_blank' href='$zig_link_print'>" ;
+		$image = zig("images","32x32/devices/printer1.png") ;
+		$buffer.= "<img src='$image' />" ;
+		$buffer.= "</a>" ;
+		$buffer.= "</th>" ;
+		// -- End print image
+
+		// -- Start export image
+		$zig_hash_export = "action=export,id=".$id ;
+		$zig_hash_export = zig("hash","encrypt",$zig_hash_export) ;
+		$zig_link_export = $php_self."?zig_hash=".$zig_hash_export ;
+		$buffer.= "<th id='boo_trigger_export_image' class='boo_actions_image'>" ;
+		$buffer.= "<a href='$zig_link_export'>" ;
+		$image = zig("images","32x32/actions/rotate_cc.png") ;
+		$buffer.= "<img src='$image' />" ;
+		$buffer.= "</a>" ;
+		$buffer.= "</th>" ;
+		// -- End export image
+
+		// -- Start spacer
+		$buffer.= "<td>" ;
+		$buffer.= "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ;
+		$buffer.= "</td>" ;
+		// -- End spacer
+
+		// -- Start void image
+		$zig_hash_void = "action=void,id=".$id ;
+		$zig_hash_void = zig("hash","encrypt",$zig_hash_void) ;
+		$zig_link_void = $php_self."?zig_hash=".$zig_hash_void ;
+		$boo_hash_void = zig("hash","encrypt","void") ;
+		$buffer.= $action=="listing" ? "<th id='boo_trigger_void_image' class='boo_invisible'>" : "<th id='boo_trigger_void_image' class='boo_actions_image'>" ;
+		$buffer.= "<div id='div_zig_trigger_void_image' class='{boo_trigger_class}'>" ;
+		$buffer.= $action=="listing" ? "<a onclick=\"return listing_multiple_trigger('void','$boo_hash_void') ;\">" : "<a onclick=\"return zig_confirmation('void','$zig_link_void')\">" ;
+		$image = zig("images","32x32/devices/Disconnected.png") ;
+		$buffer.= "<img src='$image' />" ;
+		$buffer.= "</a>" ;
+		$buffer.= "</div>" ;
+		$buffer.= "</th>" ;
+		// -- End void image
+		
+		// -- Start delete image
+		$zig_hash_delete = "action=delete,id=".$id ;
+		$zig_hash_delete = zig("hash","encrypt",$zig_hash_delete) ;
+		$zig_link_delete = $php_self."?zig_hash=".$zig_hash_delete ;
+		$boo_hash_delete = zig("hash","encrypt","delete") ;
+		$buffer.= $action=="listing" ? "<th id='boo_trigger_delete_image' class='boo_invisible'>" : "<th id='boo_trigger_delete_image' class='boo_actions_image'>" ;
+		$buffer.= "<div id='div_zig_trigger_delete_image' class='{boo_trigger_class}'>" ;
+		$buffer.= $action=="listing" ? "<a onclick=\"return listing_multiple_trigger('delete','$boo_hash_delete') ;\">" : "<a onclick=\"return zig_confirmation('delete','$zig_link_delete')\">" ;
+		$image = zig("images","32x32/actions/fileclose.png") ;
+		$buffer.= "<img src='$image' />" ;
+		$buffer.= "</a>" ;
+		$buffer.= "</div>" ;
+		$buffer.= "</th>" ;
+		// -- End delete image
+
+		$buffer.= "</tr>" ;
+
+
+		$buffer.= "<tr>" ;
+		if($action=="listing")
+		{
+			// -- Start view label
+			$buffer.= "<td id='boo_trigger_view'>" ;
+			$buffer.= "<div id='div_zig_trigger_view_label' class='{boo_trigger_class}' align='center'>" ;
+			$buffer.= "<input type='hidden' id='boo_trigger_hash_view' value='$boo_hash_view' />" ;
+			$buffer.= "<a id='boo_trigger_view' onclick=\"return listing_multiple_trigger('view','$boo_hash_view') ;\"  onmouseover=\"document.getElementById(this.id + '_image').className='boo_actions_image_hover';\" onmouseout=\"document.getElementById(this.id + '_image').className='boo_actions_image';\">" ;
+			$buffer.= "View" ;
+			$buffer.= "</a>" ;
+			$buffer.= "</div>" ;
+			$buffer.= "</td>" ;
+			// -- End view label
+
+			// -- Start edit label
+			$buffer.= "<td id='boo_trigger_edit'>" ;
+			$buffer.= "<div id='div_zig_trigger_edit_label' class='{boo_trigger_class}' align='center'>" ;
+			$buffer.= "<input type='hidden' id='boo_trigger_hash_edit' value='$boo_hash_edit' />" ;
+			$buffer.= $action=="listing" ? "<a id='boo_trigger_edit' onclick=\"return listing_multiple_trigger('edit','$boo_hash_edit') ;\" onmouseover=\"document.getElementById(this.id + '_image').className='boo_actions_image_hover';\" onmouseout=\"document.getElementById(this.id + '_image').className='boo_actions_image';\">" : "<a>" ;
+			$buffer.= "Edit" ;
+			$buffer.= "</a>" ;
+			$buffer.= "</div>" ;
+			$buffer.= "</td>" ;
+			// -- End edit label
+		}
+
+		// -- Start print label
+		$buffer.= "<td id='boo_trigger_print' onmouseover=\"document.getElementById(this.id + '_image').className='boo_actions_image_hover';\" onmouseout=\"document.getElementById(this.id + '_image').className='boo_actions_image';\">" ;
+		$buffer.= "<div align='center'>" ;
+		$buffer.= "<input type='hidden' id='boo_trigger_hash_print' value='$boo_hash_print' />" ;
+		$buffer.= "<a target='_blank' href='$zig_link_print'>" ;
+		$buffer.= "Print" ;
+		$buffer.= "</a>" ;
+		$buffer.= "</div>" ;
+		$buffer.= "</td>" ;
+		// -- End print label
+
+		// -- Start export label
+		$buffer.= "<td id='boo_trigger_export' onmouseover=\"document.getElementById(this.id + '_image').className='boo_actions_image_hover';\" onmouseout=\"document.getElementById(this.id + '_image').className='boo_actions_image';\">" ;
+		$buffer.= "<div align='center'>" ;
+		$buffer.= "<a href='$zig_link_export'>" ;
+		$buffer.= "Export" ;
+		$buffer.= "</a>" ;
+		$buffer.= "</div>" ;
+		$buffer.= "</td>" ;
+		// -- End export label
+
+		$buffer.= "<td>" ;
+		$buffer.= "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ;
+		$buffer.= "</td>" ;
+
+
+		// -- Start void label
+		$buffer.= "<td id='boo_trigger_void'>" ;
+		$buffer.= "<div id='div_zig_trigger_void_label' class='{boo_trigger_class}' align='center'>" ;
+		$boo_hash = zig("hash","encrypt","void") ;
+		$buffer.= "<input type='hidden' id='boo_trigger_hash_void' value='$boo_hash_void' />" ;
+		$buffer.= $action=="listing" ? "<a id='boo_trigger_void' onclick=\"listing_multiple_trigger('void','$boo_hash_void') ;\" onmouseover=\"document.getElementById(this.id + '_image').className='boo_actions_image_hover';\" onmouseout=\"document.getElementById(this.id + '_image').className='boo_actions_image';\">" : "<a id='boo_trigger_void' onclick=\"return zig_confirmation('void','$zig_link_void')\" onmouseover=\"document.getElementById(this.id + '_image').className='boo_actions_image_hover';\" onmouseout=\"document.getElementById(this.id + '_image').className='boo_actions_image';\">" ;
+		$buffer.= "Void" ;
+		$buffer.= "</a>" ;
+		$buffer.= "</div>" ;
+		$buffer.= "</td>" ;
+		// -- End void label
+		
+
+		// -- Start delete label
+		$buffer.= "<td id='boo_trigger_delete'>" ;
+		$buffer.= "<div id='div_zig_trigger_delete_label' class='{boo_trigger_class}' align='center'>" ;
+		$boo_hash = zig("hash","encrypt","delete") ;
+		$buffer.= "<input type='hidden' id='boo_trigger_hash_delete' value='$boo_hash_delete' />" ;
+		$buffer.= $action=="listing" ? "<a id='boo_trigger_delete' onclick=\"listing_multiple_trigger('delete','$boo_hash_delete') ;\" onmouseover=\"document.getElementById(this.id + '_image').className='boo_actions_image_hover';\" onmouseout=\"document.getElementById(this.id + '_image').className='boo_actions_image';\">" : "<a onclick=\"return zig_confirmation('delete','$zig_link_delete')\" onmouseover=\"document.getElementById(this.id + '_image').className='boo_actions_image_hover';\" onmouseout=\"document.getElementById(this.id + '_image').className='boo_actions_image';\">" ;
+		$buffer.= "Delete" ;
+		$buffer.= "</a>" ;
+		$buffer.= "</div>" ;
+		$buffer.= "</td>" ;
+		// -- End delete label
+		
+
+		$buffer.= "</tr>" ;
+		$buffer.= "</table>" ;
+
+		$template = zig("template","file","trigger") ;
+		$buffer = str_replace("{trigger}",$buffer,$template) ;
+		$buffer = str_replace("{script}","<script src='../zig-api/jscripts/listing/trigger.js'></script>",$buffer) ;
+
+		if($action=="listing")
+		{
+			$buffer = str_replace("{boo_trigger_class}","boo_invisible",$buffer) ;
+		}
+		else if($action=="view")
+		{
+			$buffer = str_replace("{boo_trigger_class}","boo_visible",$buffer) ;
+		}
+		
+		return $buffer ;
+	}
+	
+	
+	function add_edit($action)
+	{
+		$buffer = zig("template","file","trigger_add") ;
+		$buffer = str_replace("{form_name}","form_zig_".$action,$buffer) ;
+			
+		$app_link = "../".$GLOBALS['zig']['current']['module'] ;
+		$buffer = str_replace("{app_link}",$app_link,$buffer) ;
+
+		$image = zig("images","32x32/devices/3floppy_mount.png") ;
+		$buffer = str_replace("{save_image}",$image,$buffer) ;
+		
+		$image = zig("images","32x32/actions/reload.png") ;
+		$buffer = str_replace("{refresh}",$image,$buffer) ;
+
+		$image = zig("images","32x32/actions/reload.png") ;
+		$buffer = str_replace("{reset_image}",$image,$buffer) ;
+	
+		return $buffer ;
+	}
+
+}
+
+}}}

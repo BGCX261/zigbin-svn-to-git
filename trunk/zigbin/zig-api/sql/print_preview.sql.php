@@ -1,0 +1,82 @@
+<?php
+
+class zig_print_preview
+{
+	function print_preview($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1 or $arg2 or $arg3)
+		{
+			$table = $arg1 ;
+			$id = $arg2 ;
+			$print_view = $arg3 ;
+		}
+		else if(is_array($parameters))
+		{
+			$table = array_key_exists("table",$parameters) ? $parameters['table'] : NULL ;
+			$id = array_key_exists("id",$parameters) ? $parameters['id'] : NULL ;
+			$print_view = array_key_exists("print_view",$parameters) ? $parameters['print_view'] : NULL ;
+			$exclude = array_key_exists("exclude",$parameters) ? $parameters['exclude'] : NULL ;
+			$permissions = array_key_exists("permissions",$parameters) ? $parameters['permissions'] : NULL ;		
+		}
+
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+
+		// Start remove the database name on the table
+		$semi_stripped_table = str_replace($zig_global_database.".","",$table) ;
+		// End remove the database name on the table
+
+		// Start stripped table name
+		$stripped_table = str_replace($pre,"",$semi_stripped_table) ;
+		// End stripped table name
+
+		$sql = "SELECT * FROM $zig_global_database.${pre}relationships WHERE (parent_table='$table' OR parent_table='$semi_stripped_table' OR parent_table='$stripped_table' OR parent_table='all tables') AND `child_table`<>'' AND `zig_status`<>'deleted' ORDER BY `zig_weight`,`fieldset`,`child_table`" ;
+		$field_result = zig("query",$sql) ;
+
+		$wizard_parameters = array
+		(
+			'function'		=>	'fields',
+			'method'		=>	'parent',
+			'table'			=>	$table,
+			'exclude'		=>	$exclude,
+			'id'			=>	$id,
+			'mode'			=>	'view',
+			'permissions'	=>	$permissions,
+			'details'		=>	true,
+			'revisions'		=>	true
+		) ;
+		$buffer.= zig($wizard_parameters) ;
+
+		// -- Start process child table			
+		while($field_fetch=$field_result->fetchRow())
+		{
+			$field_fetch['child_table'] = str_replace($zig_global_database.".","",$field_fetch['child_table']) ;
+			$field_fetch['child_table'] = str_replace($pre,"",$field_fetch['child_table']) ;
+			$field_fetch['child_table'] = $zig_global_database.".".$pre.$field_fetch['child_table'] ;
+
+			$wizard_parameters = array
+			(
+				'function'		=>	'fields',
+				'method'		=>	'child',
+				'table'			=>	$field_fetch['child_table'],
+				'parent_table'	=>	$table,
+				'parent_id'		=>	$id,
+				'exclude'		=>	$exclude,
+				'mode'			=>	'view',
+				'permissions'	=>	$permissions
+			) ;
+			$buffer.= zig($wizard_parameters) ;
+		}
+		// -- End process child table
+
+		$buffer = $print_view ? $buffer : $buffer.zig("trigger","view",$id) ;
+		$template = zig("template","file","view") ;
+		$buffer = str_replace("{view}",$buffer,$template) ;
+		$zig_result['buffer'] = str_replace("{enctype}","",$buffer) ;
+
+		return $zig_result ;
+	}
+
+}
+
+?>

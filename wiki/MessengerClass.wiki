@@ -1,0 +1,64 @@
+#summary messenger.lib.php
+
+= Description =
+A class called to gather and display messages on system status identified per parameter. 
+
+= Parameters =
+ * topmenu
+ * applications
+ * actions
+ * function
+ * messenger
+ * header
+ * tabs
+ * trigger
+ * footer
+
+= Return Value =
+ * Returns true or false
+
+= Source =
+{{{
+
+class zig_messenger
+{
+	function messenger($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$error = $arg1 ;
+			$warning = $arg2 ;
+			$system = $arg3 ;
+		}
+		else if(is_array($parameters))
+		{
+			$error = $parameters['error'] ;
+			$warning = $parameters['warning'] ;
+			$system = $parameters['system'] ;
+			$application = $parameters['message'] ;
+		}
+	
+		if($error or $warning or $system or $application)
+		{
+			$messages = $error ? $error : "" ;
+			$messages = ($messages and $warning) ? "<br />" : $messages ;
+			$messages = $warning ? $messages.$warning : $messages ;
+			$messages = ($messages and $system) ? "<br />" : $messages ;
+			$messages = $system ? $messages.$system : $messages ;
+			$messages = ($messages and $application) ? "<br />" : $messages ;
+			$messages = $application ? $messages.$application : $messages ;
+	
+			$buffer = zig("template","file","messenger") ;
+			$buffer = str_replace("{message}",$messages,$buffer) ;
+		
+			$boo_result['value'] = $buffer ;
+		}
+
+		$boo_result['return'] = 1 ;
+		
+		print_r($boo_result);
+		return $boo_result ;
+	}
+}
+
+}}}

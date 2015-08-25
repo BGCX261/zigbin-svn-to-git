@@ -1,0 +1,48 @@
+<!-- start suggest add -->
+<input maxlength='{field_data_size}' id='{current_field_name}_id_{uniqueString}' name='{tableName}_{current_field_name}' value="{fieldValue}" 
+	autocomplete='off' {attribute_script} 
+	onkeyup="suggest_filter('divSuggest_{tableName}_{current_field_name}_{uniqueString}','{current_field_name}_id_{uniqueString}','{droplist_options}') ; 
+		suggest_keyboard('divSuggest_{tableName}_{current_field_name}_{uniqueString}',this.id,event) ;" 
+	onmousedown="suggest_toggle('divSuggest_{tableName}_{current_field_name}_{uniqueString}',null) ; 
+		document.getElementById('divSuggest_{tableName}_{current_field_name}_{uniqueString}').setAttribute('pointer','over');" 
+	onmouseover="document.getElementById('divSuggest_{tableName}_{current_field_name}_{uniqueString}').setAttribute('pointer','over');" 
+	onmouseout="document.getElementById('divSuggest_{tableName}_{current_field_name}_{uniqueString}').setAttribute('pointer','out');" />{requiredFlag}
+<span id="zig_field_countdown_{current_field_name}_{uniqueString}" class="zig_field_countdown"></span>
+{fieldDescription}
+<div id='divSuggest_{tableName}_{current_field_name}_{uniqueString}' class='zig_droplist_suggest_div' pointer='out' 
+	onmouseover="this.setAttribute('pointer','over');" 
+	onmouseout="this.setAttribute('pointer','out');">
+	{droplist}
+</div>
+
+<!-- end suggest add -->
+
+<!-- start suggest edit -->
+<div id="zig_div_input_edit_{current_field_name}_{uniqueString}" class="zig_invisible">
+	<input maxlength='{field_data_size}' id='{current_field_name}_id_{uniqueString}' name='{tableName}_{current_field_name}' value="{fieldValue}" 
+		onblur="zig_viewField('zig_span_value_{current_field_name}_{uniqueString}','zig_div_input_edit_{current_field_name}_{uniqueString}',this,'{zigHash}','{current_field_name}','','','{passedUniqueString}') ;" 
+		autocomplete='off' {attribute_script} 
+		onkeyup="suggest_filter('divSuggest_{tableName}_{current_field_name}_{uniqueString}','{current_field_name}_id_{uniqueString}','{droplist_options}') ; 
+			suggest_keyboard('divSuggest_{tableName}_{current_field_name}_{uniqueString}',this.id,event) ;" 
+		onmousedown="suggest_toggle('divSuggest_{tableName}_{current_field_name}_{uniqueString}',null) ; 
+			document.getElementById('divSuggest_{tableName}_{current_field_name}_{uniqueString}').setAttribute('pointer','over');" 
+		onmouseover="document.getElementById('divSuggest_{tableName}_{current_field_name}_{uniqueString}').setAttribute('pointer','over');" 
+		onmouseout="document.getElementById('divSuggest_{tableName}_{current_field_name}_{uniqueString}').setAttribute('pointer','out');" />{requiredFlag}
+	<span id="zig_field_countdown_{current_field_name}_{uniqueString}" class="zig_field_countdown"></span>
+	{fieldDescription}
+	<div id='divSuggest_{tableName}_{current_field_name}_{uniqueString}' class='zig_droplist_suggest_div' pointer='out' 
+		onmouseover="this.setAttribute('pointer','over');" 
+		onmouseout="this.setAttribute('pointer','out');">
+		{droplist}
+	</div>
+</div>
+
+<!-- end suggest edit -->
+
+<!-- start suggest option -->
+<div class='zig_droplist_suggest_div_option' 
+	onmousedown="suggest_select('divSuggest_{tableName}_{current_field_name}_{uniqueString}','{current_field_name}_id_{uniqueString}','{optionValue}') ;">
+{optionValue}
+</div>
+
+<!-- end suggest option -->

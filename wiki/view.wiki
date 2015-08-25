@@ -1,0 +1,45 @@
+#summary view - view data
+= view =
+view - view data
+
+(zigbin 1.0)
+
+= Description =
+
+ string view (array parameters) = view table contents
+
+
+= Parameters =
+
+ type = view type
+
+ table = database table name
+
+ id = item id
+
+ print_view = print view type
+
+ zig_list_url = zig URL list
+
+= Return Value =
+
+ will return a blank view if error or no data was found, will return a view populated with data if successful.
+
+= Example =
+
+{{{
+<?php
+
+require_once("../zig-api/zigbin.php") ;
+$parameters = array
+(
+  'function' => 'view',
+  'table'     => 'mytable',
+  'id' => 'myid',
+  'print_view' => 'myprintview',
+  'zig_list_url' => 'myurllist'
+) ;
+zigbin($parameters) ;
+
+?>
+}}}

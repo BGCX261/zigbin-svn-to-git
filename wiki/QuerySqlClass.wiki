@@ -1,0 +1,73 @@
+#summary query.sql.php
+
+= Description =
+A class responsible to get query from the table database upon login. 
+
+= Parameters =
+ * $sql
+ * $script
+
+= Return Values =
+ * Returns true from gathered database queries
+
+= Source =
+{{{
+
+class zig_query
+{
+	function query($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1 or $arg2 or $arg3)
+		{
+			$sql = $arg1 ;
+			$script = $arg2 ;
+			$move = isset($arg3) ? $arg3 : true ;
+		}
+		else
+		{
+			$sql = ( is_array($parameters['sql']) and isset($parameters['sql']) ) ? $parameters['sql'] : "" ;
+			$script = $parameters['script'] ;
+			$move = isset($parameters['move']) ? $parameters['move'] : true ;
+		}
+
+	if($sql<>"")
+	{
+		$result = $GLOBALS['zig']['adodb']->Execute($sql) ;
+		$error_number = $GLOBALS['zig']['adodb']->ErrorNo() ;
+	}
+	else
+	{
+		$error_number = "blank" ;
+		$sql = "[blank]" ;
+	}
+	if($error_number)
+	{
+		$zig_result['error'].= "Script: $script<br />" ;
+		$zig_result['error'].= "SQL Statement: $sql<br />" ;
+		$zig_result['error'].= "SQL Error: ".$GLOBALS['zig']['adodb']->ErrorMsg() ;
+	}
+	else
+	{
+		if($move)
+		{
+			$result->MoveFirst() ;
+		}
+
+		$zig_result['value'] = $result ;
+	}
+
+	if($error_number<>"blank" or !$error_number)
+	{
+		require_once("../zig-api/sql/logit.sql.php") ;
+		$logit_object = new zig_logit ;
+		$logit_object->logit("logit","sql","query.sql.php","$sql\n$error_number") ;
+	}
+
+	$zig_result['return'] = 1 ;	
+	
+	return $zig_result ;
+	
+	}
+}
+
+}}}

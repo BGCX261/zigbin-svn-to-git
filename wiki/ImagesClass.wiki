@@ -1,0 +1,52 @@
+#summary images.lib.php
+
+= Description =
+An object used to fetch all images in place based on config declaration.
+
+= Parameters =
+ * module name
+ * image name
+ * image path
+
+= Return Value =
+ * Returns the path image value and returns true.
+
+= Source =
+{{{
+
+class zig_images
+{
+	function images($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$image = $arg1 ;
+		}
+		else if(is_array($parameters))
+		{
+			$image = $parameters['image'] ;
+		}
+
+		$annoying_ie = (strpos($_SERVER['HTTP_USER_AGENT'],"MSIE") and !strpos($_SERVER['HTTP_USER_AGENT'],"MSIE 7")) ? true : false ;
+		$image = $annoying_ie ? str_replace(".png",".gif",$image) : $image ;
+		$application_image = "../".$GLOBALS['zig']['current']['module']."/".$GLOBALS['zig']['path']['theme']."/".$GLOBALS['zig']['current']['theme']."/img/".$image ;
+		$image = file_exists($application_image) ? $application_image : "../".$GLOBALS['zig']['path']['api']."/".$GLOBALS['zig']['path']['theme']."/".$GLOBALS['zig']['current']['theme']."/img/".$image ;
+		$image = (!file_exists($image) and $annoying_ie) ? str_replace(".gif",".png",$image) : $image ;
+
+		if(!file_exists($image))
+		{
+			$default_image_file = zig("config","image") ;
+			$image_file = $annoying_ie ? str_replace(".png",".gif",$default_image_file) : $default_image_file ;
+			$image_file = !file_exists($image) ? $default_image_file : $image_file ;
+			$image = "../".$GLOBALS['zig']['current']['module']."/".$GLOBALS['zig']['path']['theme']."/".$GLOBALS['zig']['current']['theme']."/img/".$image_file ;
+			$image = file_exists($image) ? $image : "../".$GLOBALS['zig']['path']['api']."/".$GLOBALS['zig']['path']['theme']."/".$GLOBALS['zig']['current']['theme']."/img/".$image_file ;
+		}
+	
+		$zig_result['value'] = $image ;
+		$zig_result['return'] = 1 ;
+		
+		return $zig_result ;
+	}
+}
+
+}}}

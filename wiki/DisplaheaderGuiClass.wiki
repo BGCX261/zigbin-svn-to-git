@@ -1,0 +1,58 @@
+#summary display_header.gui.php
+
+= Description =
+A class responsible to display the gui for the header depending on parameters passed.
+
+= Parameters =
+ * $buffer
+ * $pre
+ * $zig_global_database
+ * $module
+
+= Return Value =
+ * Returns buffer triggers true or false.
+
+= Source =
+{{{
+class zig_display_header
+{
+	function display_header($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		$buffer = zig("template","file","header") ;
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+		$module = $GLOBALS['zig']['current']['module'] ;
+
+		$sql = "SELECT icon,title FROM $zig_global_database.${pre}applications WHERE directory='$module' LIMIT 1" ;
+		$result = $GLOBALS['zig']['adodb']->Execute($sql) ;
+		$record = $result->RecordCount() ;
+		if($record)
+		{
+			$fetch = $result->fetchRow() ;
+			$title =  $fetch['title'] ;
+			$icon = $fetch['icon'] ;
+			// Start -- I don't know putting something here and calling the zig will make this object work fine
+			$dummy = zig("config","title","zig-api") ;
+			if($title=="Home")
+			{
+				$dummy = zig("config","title","zig-api") ;
+			}
+			// End -- I don't know putting something here and calling the zig will make this object work fine	
+		}
+		else
+		{
+			$title = zig("config","title","zig-api") ;
+			$icon = zig("config","icon","zig-api") ;
+		}
+
+		$icon = zig("images",$icon) ;
+		$buffer = str_replace("{zig_module_icon}",$icon,$buffer) ;
+		$buffer = str_replace("{header}",$title,$buffer) ;
+		$rop_result['value'] = $buffer ;
+		$rop_result['return'] = 1 ;
+		
+		return $rop_result ;
+	}
+}
+
+}}}

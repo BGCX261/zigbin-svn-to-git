@@ -1,0 +1,63 @@
+#summary update.sql.php
+
+= Description =
+A class used to point a certain record for updating in the database.
+
+= Parameters =
+ * $table
+ * $set
+ * $where
+
+= Return Values =
+ * Returns true or false.
+
+= Source =
+{{{
+class zig_update
+{
+	function update($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1 or $arg2 or $arg3)
+		{
+			$table = $arg1 ;
+			$set = $arg2 ;
+			$where = $arg3 ;
+		}
+		else if(is_array($parameters))
+		{
+			$table = isset($parameters['table']) ? $parameters['table'] : '' ;
+			$set = $parameters['set'] ? $parameters['set'] : ''  ;
+			$where = $parameters['where'] ? $parameters['where'] : '' ;
+			$limit = $parameters['limit'] ? $parameters['limit'] : '' ;
+		}
+
+		if($table and $set)
+		{
+			if(is_array($set))
+			{
+				$counter = 0 ;
+				foreach($set as $update_set)
+				{
+					$update_table = is_array($table) ? $table[$counter] : $table ;
+					$update_where = is_array($where) ? $where[$counter] : $where ;
+					$update_limit = is_array($limit) ? $limit[$counter] : $limit ;
+				
+					$sql = "UPDATE $update_table SET $update_set $update_where $update_limit " ;
+					$result = zig("query",$sql,"update.sql.php",false) ;
+					$counter++ ;
+				}
+			}
+			else
+			{
+				$sql = "UPDATE $table SET $set $where $limit " ;
+				$result = zig("query",$sql,"update.sql.php",false) ;
+			}
+		}
+
+		$boo_result['return'] = 1 ;
+		
+		return $boo_result ;
+	}
+}
+
+}}}

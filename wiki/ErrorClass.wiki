@@ -1,0 +1,46 @@
+#summary error.lib.php
+
+= Description =
+
+An object called when an error occurs during implementation of zigbin.
+
+
+= Parameter =
+ * code
+
+= Return Value =
+ _none_
+
+= Source =
+
+{{{
+
+class zig_error
+{
+	function error($code)
+	{
+
+      $pre = zig("config","pre") ;
+      $zig_global_database = zig("config","global_database") ;
+      $table = $zig_global_database.".".$pre."configs" ;
+	  $sql = " SELECT `desc` FROM `$zig_global_database`.`${pre}error` WHERE `code`='$code' ";
+	  $mysql_result=mysql_query($sql);
+      $num_rows=mysql_num_rows($mysql_result);
+
+      if ($num_rows == 0) 
+         {
+           echo "$code : Please contact your administrator... " ;
+         } else 
+           {
+            while ($row=mysql_fetch_array($mysql_result))
+            {
+             $desc=$row["desc"];
+             echo "$code: $desc";
+            }
+
+           }
+      }	
+
+}
+
+}}}

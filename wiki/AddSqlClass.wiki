@@ -1,0 +1,151 @@
+#summary add.sql.php
+
+= Description =
+An called to add entry into a database table.  This is one of the actions of zigbin handling and setting up data entry dynamically.  After calling this class the save method is called for final saving of data.
+
+= Parameters =
+ * $table
+ * $default
+ * $exclude
+ * $permissions
+
+= Return Values =
+ * Returns true or false and a confirmation message.
+
+= Source =
+{{{
+
+class zig_add
+{
+	function add($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1 or $arg2 or $arg3)
+		{
+			$table = $arg1 ;
+			$defaults = $arg2 ;
+			$exclude = $arg3 ;
+		}
+		else
+		{
+			$table = $parameters['table'] ;
+			$defaults = $parameters['defaults'] ;
+			$exclude = $parameters['exclude'] ;
+			$permissions = $parameters['permissions'] ;
+		}
+
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+
+		// Start remove the database name on the table
+		$semi_stripped_table = str_replace($zig_global_database.".","",$table) ;
+		// End remove the database name on the table
+
+		// Start stripped table name
+		$stripped_table = str_replace($pre,"",$semi_stripped_table) ;
+		// End stripped table name
+		
+		$boo_save = isset($_GET['boo_save']) ? $_GET['boo_save'] : (isset($_POST['boo_save']) ? $_POST['boo_save'] : '') ;
+		$sql = "SELECT * FROM $zig_global_database.${pre}relationships WHERE parent_table='$table' OR parent_table='$semi_stripped_table' OR parent_table='$stripped_table' OR parent_table='all tables' ORDER BY weight" ;
+		$field_result = zig("query",$sql,"add.sql.php") ;
+		
+		if($boo_save)
+		{
+			$save_parameters = array
+			(
+				'function'		=>	'save',
+				'table'			=>	$table,
+				'exclude'		=>	$exclude,
+				'method'		=>	'parent',
+				'mode'			=>	'add'
+			) ;
+			$boo_add_result = zig($save_parameters) ;
+			$parent_id = $boo_add_result['id'] ;
+			$zig_result['message'] = $boo_add_result['message'] ;
+			$zig_result['validation'] = $boo_add_result['validation'] ;
+			
+			if($zig_result['validation'])
+			{
+			
+				while($field_fetch=$field_result->fetchRow())
+				{
+					$semi_stripped_table = str_replace($zig_global_database.".","",$field_fetch['child_table']) ;
+					$stripped_table = str_replace($pre,"",$semi_stripped_table) ;
+					$field_fetch['child_table'] = $zig_global_database.".".$pre.$stripped_table ;
+
+					// -- Start process child table
+					$save_parameters = array
+					(
+						'function'		=>	'save' ,
+						'table'			=>	$field_fetch['child_table'] ,
+						'exclude'		=>	$exclude ,
+						'method'		=>	'child' ,
+						'parent_id'		=>	$parent_id ,
+						'parent_table'	=>	$table ,
+						'mode'			=>	'add'
+					) ;
+					$boo_add_result = zig($save_parameters) ;
+					$zig_result['message'].= $boo_add_result['message'] ;
+					$zig_result['validation']*= $boo_add_result['validation'] ;
+					// -- End process child table
+				}
+			}
+			$field_result->MoveFirst() ;
+		}
+
+		$data_saved = ($zig_result['validation'] and  $boo_save) ? true : false ;
+		
+		// -- Start Process Parent Data
+		$wizard_parameters = array
+		(
+			'function'			=>	'fields',
+			'method'			=>	'parent',
+			'table'				=>	$table,
+			'exclude'			=>	$exclude,
+			'mode'				=>	'add',
+			'data_saved'		=>	$data_saved,
+			'invalid_fields'	=>	$boo_add_result['invalid_fields'],
+			'permissions'		=>	$permissions
+		) ;
+		$buffer.= zig($wizard_parameters) ;
+		// -- End Process Parent Data
+	
+		// -- Start process child table
+		while($field_fetch=$field_result->fetchRow())
+		{
+			// Start remove the database name on the table
+			$field_fetch['child_table'] = str_replace($zig_global_database.".","",$field_fetch['child_table']) ;
+			// End remove the database name on the table
+
+			// Start stripped table name
+			$field_fetch['child_table'] = str_replace($pre,"",$field_fetch['child_table']) ;
+			// End stripped table name
+		
+			$wizard_parameters = array
+			(
+				'function'		=>	'fields',
+				'method'		=>	'child',
+				'table'			=>	$pre.$field_fetch['child_table'],
+				'exclude'		=>	$exclude,
+				'mode'			=>	'add',
+				'data_saved'	=>	$data_saved,
+				'invalid_fields'=>	$boo_add_result['invalid_fields'],
+				'permissions'	=>	$permissions
+			) ;
+			$buffer.= zig($wizard_parameters) ;
+		}
+		// -- End process child table
+		
+		$template = zig("template","file","add") ;
+		$buffer.= zig("trigger","add") ;
+		$buffer = str_replace("{add}",$buffer,$template) ;
+		$buffer = strpos($buffer," type='file' ") ? str_replace("{enctype}","enctype='multipart/form-data'",$buffer) : str_replace("{enctype}","enctype='multipart/form-data'",$buffer) ;
+		$zig_result['buffer'] = $buffer ;
+		$zig_result['value'] = $parent_id ;
+	
+		print_r($zig_result);
+		
+		return $zig_result ;
+	}
+}
+
+}}}

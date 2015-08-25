@@ -1,0 +1,133 @@
+#summary config.lib.php
+
+= Description =
+
+Executes configurations from your API.  Datas are pulled-out or fetched from your zig_configs and zig_tabs table found in your global database to create zigbin output.
+
+
+= Parameters =
+
+==== Fieldnames of zig_configs and zig_tabs table. ====
+ * name
+ * module
+ * config
+
+= Return Value =
+
+* Returns the equivalent value from value field in zig_configs table.
+
+= Source =
+{{{
+
+<?php
+
+class zig_config
+{
+	function config($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1 or $arg2 or $arg3)
+		{
+			$name = $arg1 ;
+			$module = $arg2 ? $arg2 : "zig-api" ;
+			$config = $arg3 ? $arg3 : "default" ;
+			$result = "all" ;
+		}
+		else if(is_array($parameters))
+		{
+			$name = $parameters['name'] ;
+			$module = isset($parameters['module']) ? $parameters['module'] : "zig-api" ;
+			$config = isset($parameters['config']) ? $parameters['config'] : "default" ;
+			$result = $parameters['result'] ;
+			$tab = $parameters['tab'] ;
+		}
+
+		//print $name;
+	
+		$script = $GLOBALS['zig']['current']['script'] ; 
+		if(isset($GLOBALS[$config][$module][$name]))
+		{
+			$value = $GLOBALS[$config][$module][$name] ;
+		}
+		else
+		{
+		$pre = $GLOBALS['zig']['sql']['pre'] ;
+		$zig_global_database = $GLOBALS['zig']['sql']['global_database'] ;
+		$limit = is_numeric($result) ? "LIMIT $result" : "" ;
+
+		if(!$tab)
+		{
+			// -- Start set tab
+			$tab_sql = "SELECT name FROM $zig_global_database.${pre}tabs WHERE link='$script' LIMIT 1" ;
+			$tab_result = $GLOBALS['zig']['adodb']->Execute($tab_sql) ;
+			$tab_fetch = $tab_result->fetchRow() ;
+			$tab = $tab_fetch['name'] ? $tab_fetch['name'] : "all" ;
+			$error_number = $GLOBALS['zig']['adodb']->ErrorNo() ;
+			// -- End set tab
+		}
+		
+		$sql = "SELECT value FROM $zig_global_database.${pre}configs WHERE (module='$module' OR module='all') AND (tab='$tab' OR tab='all') AND (config='$config' OR config='all') AND name='$name' $limit ORDER BY priority" ;
+		$result = $GLOBALS['zig']['adodb']->Execute($sql) ;
+		$error_number = $GLOBALS['zig']['adodb']->ErrorNo() ;
+
+		if($error_number)
+		{
+			$zig_result['error'].= "Script: config.lib.php<br />" ;
+			$zig_result['error'].= "SQL Statement: $sql<br />" ;
+			$zig_result['error'].= "SQL Error: ".$GLOBALS['zig']['adodb']->ErrorMsg() ;
+		}
+		else
+		{
+		$record = $result->RecordCount() ;
+		if($record==0)
+		{
+			if($module<>"zig-api")
+			{
+				$module = "zig-api" ;
+				$sql = "SELECT value FROM $zig_global_database.${pre}configs WHERE (module='$module' OR module='all') AND (tab='$tab' OR tab='all') AND (config='$config' OR config='all') AND name='$name' $limit ORDER BY priority" ;
+				$result = $GLOBALS['zig']['adodb']->Execute($sql) ;
+				$record = $result->RecordCount() ;
+			}
+			else if($config<>"default")
+			{
+				$config = "default" ;
+				$sql = "SELECT value FROM $zig_global_database.${pre}configs WHERE (module='$module' OR module='all') AND (tab='$tab' OR tab='all') AND (config='$config' OR config='all') AND name='$name' $limit ORDER BY priority" ;
+				$result = $GLOBALS['zig']['adodb']->Execute($sql) ;
+				$record = $result->RecordCount() ;
+			}
+			
+			if($record==0 and $module<>"zig-api" and $config<>"default")
+			{
+				$module = "zig-api" ;
+				$config = "default" ;
+				$sql = "SELECT value FROM $zig_global_database.${pre}configs WHERE (module='$module' OR module='all') AND (tab='$tab' OR tab='all') AND (config='$config' OR config='all') AND name='$name' $limit ORDER BY priority" ;
+				$result = $GLOBALS['zig']['adodb']->Execute($sql) ;
+				$record = $result->RecordCount() ;
+			}
+		}
+		if($record>1)
+		{
+			while($fetch=$result->fetchRow())
+			{
+				$value[] = $fetch['value'] ;
+			}
+		}
+		else if($record)
+		{
+			$fetch = $result->fetchRow() ;
+			$value = $GLOBALS[$config][$module][$name] = $fetch['value'] ;
+		}
+		
+		}
+		}
+
+		$zig_result['return'] = 1 ;
+		$zig_result['value'] = $value ;
+		
+		return $zig_result ;
+	}
+}
+
+?>
+
+}}}
+ 

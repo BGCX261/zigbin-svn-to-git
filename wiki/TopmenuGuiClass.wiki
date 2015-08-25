@@ -1,0 +1,59 @@
+#summary topmenu.gui.php
+
+= Description =
+A class used to call and display the topmenu depending on the applications table configuration.
+
+= Parameters =
+ * $user
+ * $permission
+ * $module_buffer
+
+= Return Value =
+ * Returns buffer value as true or false
+
+= Source =
+{{{
+class zig_topmenu
+{
+	function topmenu($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		print_r($parameters);
+		print $arg1 . "---arg1";
+		print $arg2 . "---arg2";
+		print $arg3 . "---arg3";
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+		$username = zig("info","user") ;
+		$buffer = zig("template","block","topmenu","header") ;
+		$buffer = str_replace("{username}",$username,$buffer) ;
+
+		// -- Start Modules
+		$sql = "SELECT * FROM `${zig_global_database}`.`${pre}applications` WHERE `permission`='Topmenu' AND `status`='active' ORDER BY `weight`,`name`" ;
+		$result = zig("query",$sql,"topmenu.gui.php") ;
+		while($fetch=$result->fetchRow())
+		{
+			$permission = zig("permissions",$fetch['directory']) ;
+			if($permission)
+			{
+				$module_buffer.= zig("template","block","topmenu","modules") ;
+				$module_buffer = $flag_buffer ? str_replace("{module_separator}","|",$module_buffer) : str_replace("{module_separator}","",$module_buffer) ;
+				$module_buffer = $flag_buffer = str_replace("{module_link}","../".$fetch['directory'],$module_buffer) ;
+				$module_buffer = str_replace("{module_name}",$fetch['name'],$module_buffer) ;
+				$module_name_class = $GLOBALS['zig']['current']['module']==$fetch['directory'] ? "active" : "inactive" ;
+				$module_buffer = str_replace("{class}",$module_name_class,$module_buffer) ;
+			}
+		}
+		$buffer.= $module_buffer ? $module_buffer : "" ;
+		// -- End Modules
+
+		$buffer.= zig("template","block","topmenu","footer") ;
+		$zig_hash = zig("hash","encrypt","gate,logout") ;
+		$buffer = str_replace("{logout_link}","../zig-api/decoder.php?zig_hash=".$zig_hash,$buffer) ;
+		$zig_result['value'] = $buffer ;
+		$zig_result['return'] = 1 ;
+		
+		return $zig_result ;
+	}
+}
+
+}}}

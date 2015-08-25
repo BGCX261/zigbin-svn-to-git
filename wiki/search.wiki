@@ -1,0 +1,81 @@
+#summary search - search function
+#labels Featured,Phase-Implementation
+= search =
+ search – zig search function (uses the zig filter and zig listing functions) 
+
+ (zigbin 1.0)
+
+= Description =
+ string search(array parameters) = zig search function 
+
+= Parameters =
+ function = the function name "search" 
+
+filters = the search filters (see function filter manual) 
+
+ sql = For SQL Statement without the WHERE statement, the WHERE statement will be constructed based on the filters 
+
+Return Value
+ returns error statement if an error is encountered. if no error on the process, it will return the completed search. 
+
+= Example =
+{{{
+<?php
+require_once("../zig-api/zigbin.php");
+
+$parameters = array
+(
+'function' => 'droplist',
+'sql'      => 'SELECT * FROM foo_table',
+'default'  => '',
+'value'    => 'foo_index',
+'separator'=> ' -- '
+);
+
+$filters[] = array
+(
+'fname'       => 'Foo Bar',
+'vname'       => 'foobar',
+'type'        => 'input',
+'default'     => '',
+'description' => 'Type foobar to search',
+'tip'	      => '',
+'set'	      => 1,
+'visible'     => 1
+);
+
+$filters[] = array
+(
+'fname'	      => 'Foo',
+'vname'	      => 'foo',
+'type'	      => 'droplist',
+'list'        => zig($parameters) ,
+'default'     => '',
+'description' => 'Select Foo to search',
+'tip'	      => '',
+'set'	      => 1,
+'visible'     => 1 
+);
+
+$filters[] = array
+(
+'fname'       => 'Active',
+'vname'	      => 'active',
+'type'	      => 'checkbox',
+'default'     => '',
+'description' => 'Active?',
+'tip'	      => '',
+'set'	      => 0,
+'visible'     => 0
+);
+
+$parameters = array
+(
+'function'    => 'search',
+'filters'     => $filters,
+'sql'	      => 'SELECT * FROM mytable'
+);
+
+zig($parameters) ;
+?>
+}}}

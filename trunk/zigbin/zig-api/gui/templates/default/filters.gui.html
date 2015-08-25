@@ -1,0 +1,36 @@
+<!-- start filter header -->
+<div id="div_zig_filters_{uniqueString}" class="div_zig_filters" style="display:{display}">
+	<form id="form_{class}_id" name="form_{class}" method="post" action="{form_action}">
+		<div id="zig_div_filter_basic_search" class="{zig_visible_class}">
+			<input id="zig_keyword_id" name="zig_keyword" class="inputBasicSearchLabel" 
+				value="{zig_keyword}" onfocus="searchLabelFocus(this) ;" 
+				onblur="searchLabelBlur(this) ;" 
+				onkeypress="searchKeypress(this,'{zig_hash}','{uniqueString}',event);" />
+		</div>
+
+<!-- end filter header -->
+
+<!-- start filter rows -->
+			<tr>
+				<td class="zig_align_center">{action}</td>
+				<td>{filter}</td>
+				<td>{op}</td>
+				<td>{values}</td>
+			</tr>
+
+<!-- end filter rows -->
+
+<!-- start filter select -->
+<select name='zig_filter_select' onchange='filters_insertRowToTable() ;'>
+	<option></option>
+	{filter_select}
+</select>
+
+<!-- end filter select -->
+
+<!-- start filter footer -->
+	</form>
+</div>
+<div id="divListing_{uniqueString}">{div_zig_listing}</div>
+
+<!-- end filter footer -->

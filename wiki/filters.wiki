@@ -1,0 +1,82 @@
+#summary filters - search filters
+#labels Featured,Phase-Implementation
+= filters =
+ filters - search filters
+
+ (zigbin v1.0)
+
+
+= Description =
+ string filter(array parameters) = create search filters 
+
+
+= Parameters =
+ fname = Filter name to be used on the filter 
+
+ vname = Variable name to be used on the filter
+
+ type = Filter type -- "input","select" 
+
+ default = The filter's default value 
+
+ description = The filter's description 
+
+ tip = The filter's ballon tip (still not implemented on the alpha version, hopefully on its stable version) 
+
+ set = The filter's setting -- 0 - not set (will not appear yet on the included filters but will appear on the list), 1 - set 
+
+ visible = The filter's visibility -- 0 - hidden(even though hidden it will still be effective on the search), 1 - visible 
+
+
+= Return Value =
+ returns error statement if an error is encountered. if no error on the process, it will return the completed filter set. 
+
+
+= Example =
+{{{
+<?php
+require_once("../zig-api/zigbin.php");
+
+$parameters = array
+(
+'function' => 'droplist',
+'sql'	   => 'SELECT * FROM mytable',
+'default'  => '',
+'value'    => 'myindex',
+'separator'=> ' -- '
+) ;
+
+$filters[] = array
+(
+'fname'	        => 'Foo Name Filter',
+'vname'	        => 'foo',
+'type'	        => 'input',
+'default'	=> '',
+'description'	=> 'Type foo name to search',
+'tip'	        => '',
+'set'	        => 1,
+'visible'	=> 1
+);
+
+$filters[] = array
+(
+'fname'         => 'Foo Bar Select Filter',
+'vname'         => 'foobar',
+'type'          => 'droplist',
+'list'          => zig($parameters) ,
+'default'	=> '',
+'description'	=> 'Select Foo Bar',
+'tip'           => '',
+'set'           => 1,
+'visible'	=> 1 
+);
+
+$parameters = array
+(
+'function' => 'filter',
+'filters'  => $filters
+);
+
+zig($parameters) ;
+?>
+}}}

@@ -1,0 +1,31 @@
+#summary footer.gui.php
+
+= Description =
+A class used to to call and display the footer.
+
+= Parameters =
+ * $footer
+
+= Return Value =
+ * Returns buffer containing the footer value triggering true.
+
+= Source =
+{{{
+class zig_footer
+{
+	function footer($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		print_r($parameters);
+		print $arg1 . "---arg1";
+		print $arg2 . "---arg2";
+		print $arg3 . "---arg3";
+		$buffer = zig("template","file","footer") ;
+		$footer.= "Powered by zigbin v1.0 beta" ;
+		$boo_result['value'] = str_replace("{footer}",$footer,$buffer) ;
+		$boo_result['return'] = 1 ;
+		
+		return $boo_result ;
+	}
+}
+
+}}}

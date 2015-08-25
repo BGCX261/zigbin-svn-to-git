@@ -1,0 +1,55 @@
+<!-- start reports -->
+<div class="zig_center">
+	<div id="divReportSelection">
+		<table class="tableReportSelection">
+			<tr>
+				<td class="tdReportIcons">&nbsp;</td>
+				<td>{reports}</td>
+				<td class="tdReportIcons">
+					<div id="divPrintIconHolderId" class="divPrintIconHolder" onclick="window.print() ;">
+						<div class="divPrintIcon"></div>
+						<div>Print</div>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<div id="divReportFilters">{reportFilters}</div>
+	</div>
+</div>
+<div id="divReportContent"></div>
+
+
+<!-- end reports -->
+
+<!-- start filters -->
+{filters}
+<input type="button" value="Start Report" onclick="startReport('{file}') ;" />
+
+<!-- end filters -->
+
+<!-- start filter header -->
+<form id="formReportFilters">
+	<table class="zig_center">
+
+<!-- end filter header -->
+
+<!-- start filter row -->
+<tr>
+	<td>{filterName}</td>
+	<td>:</td>
+	<td>{filterElement}</td>
+</tr>
+
+<!-- end filter row -->
+
+<!-- start filter footer -->
+	</table>
+</form>
+<br />
+
+<!-- end filter footer -->
+
+<!-- start reportTitle -->
+<div class="divReportTitle">{reportName}</div>
+
+<!-- end reportTitle -->

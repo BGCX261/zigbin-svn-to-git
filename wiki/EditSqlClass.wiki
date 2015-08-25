@@ -1,0 +1,153 @@
+#summary edit.sql.php
+
+= Description =
+An object called to edit data in the module.  If returns true save method is called for final saving of data.
+
+= Parameters =
+ * $table
+ * $defaults
+ * $id
+ * $zig_list_url
+ * $exclude
+ * $permissions
+
+= Return Values =
+ * Returns buffer
+
+= Source =
+{{{
+
+class zig_edit
+{
+	function edit($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$table = $arg1 ;
+			$defaults = $arg2 ;
+			$id = $arg3 ;
+		}
+		else
+		{
+			$table = $parameters['table'] ;
+			$id = $parameters['id'] ;
+			$defaults = $parameters['defaults'] ;
+			$zig_list_url = $parameters['zig_list_url'] ;
+			$exclude = $parameters['exclude'] ;
+			$permissions = $parameters['permissions'] ;
+		}
+
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+		$boo_save = isset($_GET['boo_save']) ? $_GET['boo_save'] : (isset($_POST['boo_save']) ? $_POST['boo_save'] : '') ;
+
+		// Start remove the database name on the table
+		$semi_stripped_table = str_replace($zig_global_database.".","",$table) ;
+		// End remove the database name on the table
+
+		// Start stripped table name
+		$stripped_table = str_replace($pre,"",$semi_stripped_table) ;
+		// End stripped table name
+
+		$sql = "SELECT * FROM $zig_global_database.${pre}relationships WHERE parent_table='$table' OR parent_table='$semi_stripped_table' OR parent_table='$stripped_table' OR parent_table='all tables' ORDER BY weight" ;
+		$field_result = zig("query",$sql,"edit.sql.php") ;
+
+		if($boo_save)
+		{
+			$save_parameters = array
+			(
+				'function'		=>	'save',
+				'table'			=>	$table,
+				'exclude'		=>	$exclude,
+				'method'		=>	'parent',
+				'id'			=>	$id,
+				'mode'			=>	'edit',
+				'permissions'	=>	$permissions
+			) ;
+			$zig_edit_result = zig($save_parameters) ;
+			$zig_result['message'] = $zig_edit_result['message'] ;
+			$zig_result['validation'] = $zig_edit_result['validation'] ;
+
+			if($zig_result['validation'])
+			{
+				while($field_fetch=$field_result->fetchRow())
+				{
+					$field_fetch['child_table'] = str_replace($zig_global_database.".","",$field_fetch['child_table']) ;
+					$field_fetch['child_table'] = str_replace($pre,"",$field_fetch['child_table']) ;
+					$field_fetch['child_table'] = $zig_global_database.".".$pre.$field_fetch['child_table'] ;
+			
+					// -- Start process child table
+					$save_parameters = array
+					(
+						'function'			=>	'save',
+						'table'				=>	$field_fetch['child_table'],
+						'exclude'			=>	$exclude,
+						'method'			=>	'child',
+						'parent_id'			=>	$id,
+						'parent_table'		=>	$table,
+						'mode'				=>	'edit'
+					) ;
+					$zig_edit_result = zig($save_parameters) ;
+					$zig_result['message'].= $zig_edit_result['message'] ;
+					$zig_result['validation']*= $zig_edit_result['message'] ;
+					// -- End process child table
+				}
+			}
+			$field_result->MoveFirst() ;
+		}
+
+		$data_saved = ($zig_result['validation'] and  $boo_save) ? true : false ;
+
+		$wizard_parameters = array
+		(
+			'function'		=>	'fields',
+			'method'		=>	'parent',
+			'mode'			=>	'edit',
+			'table'			=>	$table,
+			'exclude'		=>	$exclude,
+			'id'			=>	$id,
+			'data_saved'	=>	$data_saved,
+			'permissions'	=>	$permissions
+		) ;
+
+		$buffer.= zig($wizard_parameters) ;
+
+		// -- Start process child table			
+		while($field_fetch=$field_result->fetchRow())
+		{
+
+			$field_fetch['child_table'] = str_replace($zig_global_database.".","",$field_fetch['child_table']) ;
+			$field_fetch['child_table'] = str_replace($pre,"",$field_fetch['child_table']) ;
+			$field_fetch['child_table'] = $zig_global_database.".".$pre.$field_fetch['child_table'] ;
+
+			$wizard_parameters = array
+			(
+				'function'		=>	'fields',
+				'method'		=>	'child',
+				'mode'			=>	'edit',
+				'table'			=>	$field_fetch['child_table'],
+				'parent_table'	=>	$table,
+				'exclude'		=>	$exclude,
+				'parent_id'		=>	$id,
+				'data_saved'	=>	$data_saved,
+				'permissions'	=>	$permissions
+			) ;
+		
+			$buffer.= zig($wizard_parameters) ;
+		}
+		// -- End process child table
+		
+		
+		$template = zig("template","file","view") ;
+		$buffer.= zig("trigger","edit",$id) ;
+		$buffer = str_replace("{view}",$buffer,$template) ;
+		$buffer = strpos($buffer," type='file' ") ? str_replace("{enctype}","enctype='multipart/form-data'",$buffer) : str_replace("{enctype}","enctype='multipart/form-data'",$buffer) ;
+		$buffer = str_replace("{zig_list_url}","<a href='$zig_list_url'>&lt;&lt;&lt;Back to list</a>",$buffer) ;
+		$zig_result['buffer'] = $buffer ;
+			
+		return $zig_result ;
+	}
+
+}
+
+}}}

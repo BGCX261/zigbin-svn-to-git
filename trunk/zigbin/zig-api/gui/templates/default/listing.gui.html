@@ -1,0 +1,100 @@
+<!-- start listing wrapper -->
+<div id="divList_{uniqueString}" class="{zigDivClass}">
+	{listing}
+</div>
+<input type="hidden" id="viewFlag" value=true />
+<div id="divView_{uniqueString}"></div>
+<div id="divAdd_{uniqueString}"></div>
+<div id="divAddReference_{uniqueString}" class="zig_invisible"></div>
+{jscript_events}
+
+<!-- end listing wrapper -->
+
+<!-- start listing -->
+<div class="zig_align_center">{listing_paging_top}</div>
+	<table id='{uniqueString}_table' class="zigTableListingClass">
+		<thead>
+			<tr>
+				{listingHeader}
+			</tr>
+		</thead>
+		<tbody id="tbody_{uniqueString}">
+			{listing_list}
+		</tbody>
+	</table>
+<div class="zig_align_center">{listing_paging_bottom}</div>
+<br />
+<br />
+<div>{listing_summary}</div>
+
+<!-- end listing -->
+
+<!-- start leftActions -->
+<a href="javascript:listingDelete('{uniqueString}','{zigHash}') ;">Delete</a>&nbsp;|&nbsp;
+
+<!-- end leftActions -->
+
+<!-- start rightActions -->
+&nbsp;|&nbsp;<a href="javascript:listingAdd('{uniqueString}','{zigAddLink}') ;">Add New Record</a>
+
+<!-- end rightActions -->
+
+<!-- start listing print view -->
+<div id="divList_{uniqueString}" class="{zigDivClass}">
+	<div class="zig_align_center">{listing_paging_top}</div>
+	<table id="{uniqueString}_table" class="zigTableListingClass">
+		<thead>
+			<tr class="zig_row_color2">
+				{listingHeader}
+			</tr>
+		</thead>
+		{listing_list}
+	</table>
+</div>
+
+<!-- end listing print view -->
+
+<!-- start listing empty -->
+<div id="divList_{uniqueString}" class="{zigDivClass}" style="display:none"></div>
+<div id="divView_{uniqueString}"></div>
+<div id="divAdd_{uniqueString}" style="display:block">
+	<div id="divNoRecordsId_{uniqueString}" class="zig_align_center">No Records Yet</div>
+	{addBuffer}
+</div>
+<div id="divAddReference_{uniqueString}" class="zig_invisible">{addBuffer}</div>
+{jscript_events}
+
+<!-- end listing empty -->
+
+<!-- start listing rows -->
+{listing_list}
+
+<!-- end listing rows -->
+
+<!-- start listing paging -->
+<div id="zig_div_list_info">{list_info}</div>&nbsp;@ page
+{left_paging_control}
+<select id="zig_page_id" name="zig_page" onchange="zig('divList_{uniqueString}','{reloadParameters}','','','','zig_page=' + this.value) ;">
+	{page_options}
+</select>
+{right_paging_control}
+
+<!-- end listing paging -->
+
+<!-- start header column -->
+<th>
+	{titleCaseField}
+	<input type='hidden' id='value_zig_listing_column_{columnNumber}' value='0' />
+	<input type='hidden' id='zig_listing_field_{columnNumber}' value='{values}' />
+	<input type='hidden' id='zig_listing_truncate_{values}_id' name='zig_listing_truncate_{values}' value='{truncateOption}' />
+</th>
+<!-- end header column -->
+
+<!-- start header all -->
+<th>
+	<a onclick="check_uncheck('{uniqueString}')">All</a>
+    <input type='hidden' id='{uniqueString}_all' value=0 />
+    <input type='hidden' id='zig_listing_sort_field_id' name='zig_listing_sort_field' value='{sort_field}' />
+    <input type='hidden' id='zig_listing_sort_direction_id' name='zig_listing_sort_direction' value='{sort_direction}' />
+</th>
+<!-- end header all -->

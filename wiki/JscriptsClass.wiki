@@ -1,0 +1,56 @@
+#summary jscripts.lib.php
+
+= Description =
+A class called to call on javascript.  This is done in locating it's path and including it in modules. 
+
+= Parameters =
+ * buffer
+ * function
+ * filename
+
+= Return Value =
+* Returns buffer and true or false.
+
+= Source =
+{{{
+
+
+class zig_jscripts
+{
+	function jscripts($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1 or $arg2 or $arg3)
+		{
+			$buffer = $arg1 ;
+			$function = $arg2 ;
+		}
+		else
+		{
+			$buffer = $parameters['buffer'] ;
+			$function = $parameters['function'] ;
+		}
+		$filenames = split(",",$function) ;
+		foreach($filenames as $jscript_name)
+		{
+			$jscripts_filename = "../zig-api/jscripts/".$jscript_name.".js" ;
+			if(file_exists($jscripts_filename))
+			{
+				$jscripts.= "<script src='$jscripts_filename'></script>" ;
+			}
+			else
+			{
+				$jscripts_filename = "../zig-api/jscripts/$jscript_name/".$jscript_name.".js" ;
+				$jscripts.=  file_exists($jscripts_filename) ? "<script src='$jscripts_filename'></script>" : "" ;
+			}
+		}
+
+		$buffer = str_replace("{zig_jscripts}",$jscripts,$buffer) ;
+
+		$zig_result['value'] = $buffer ;
+		$zig_result['return'] = 1 ;
+
+		return $zig_result ;
+	}
+}
+
+}}}

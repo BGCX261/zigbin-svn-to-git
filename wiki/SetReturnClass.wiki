@@ -1,0 +1,58 @@
+#summary set_return.lib.php
+
+= Description =
+A class called by objects having returning values.
+
+= Parameters =
+ * $boo_result
+ * return_config
+
+= Return Value =
+ * Returns the values of the parameters set.
+
+= Source =
+{{{
+
+class zig_set_return
+{
+	function set_return($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1<>"")
+		{
+			$boo_result = $parameters ;
+			$return_config = $arg1 ;
+		}
+		else
+		{
+			$boo_result = $parameters['result'] ;
+			$return_config = $parameters['return'] ;
+		}
+
+		switch($return_config)
+		{
+			case 0 :
+				unset($boo_return) ;
+				break ;
+			
+			case 1 :
+				$boo_return = $boo_result['value'] ;
+				break ;
+				
+			case 2 :
+				$boo_return = array
+				(
+					'value' 	=>	$boo_result['value'],
+					'config'	=>	$boo_result['config']
+				);
+				break ;
+				
+			case 3 :
+				$boo_return = $boo_result;
+				break ;
+		}
+		
+		return $boo_return ;
+	}	
+}
+
+}}}

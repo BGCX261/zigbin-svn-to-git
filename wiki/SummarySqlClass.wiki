@@ -1,0 +1,164 @@
+#summary summary.sql.php
+
+= Description =
+This class summarizes and creates a report for all the field values in a table depending on the table given.
+
+= Parameters =
+ * function
+ * $sql
+
+= Return Value =
+ * Returns a buffer true or false
+
+= Source =
+{{{
+class zig_summary
+{
+	function summary($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1 or $arg2 or $arg3)
+		{
+			$sql = $arg1 ;
+			$total_records = $arg2 ;
+			$display = $arg3 ;
+		}
+		else if(is_array($parameters))
+		{
+			$sql = array_key_exists('sql',$parameters) ? $parameters['sql'] : NULL ;
+			$total_records = array_key_exists('total_records',$parameters) ? $parameters['total_records'] : NULL ;
+			$display = array_key_exists('display',$parameters) ? $parameters['display'] : false ;
+		}
+
+		// -- Start Define Exclude List
+		$exclude = array
+		(
+			'id',
+			'control',
+			'timestamp',
+			'status',
+			'user',
+			'weight'
+		) ;
+		// -- End Define Exclude List
+
+	if($display)
+	{
+	
+	if(stripos($sql," order by "))
+	{
+		$sql = str_ireplace(" asc"," ",$sql) ;
+		$sql = str_ireplace(" asc "," ",$sql) ;
+		$sql = str_ireplace(" desc "," ",$sql) ;
+		$sql = str_ireplace(" desc"," ",$sql) ;
+		$ripped_sql = spliti(" order by ",$sql) ;
+		$sql = $ripped_sql[0] ;
+	}
+	$ripped_sql = spliti("select ",$sql) ;
+	$ripped_sql = spliti(" from ",$ripped_sql[1]) ;
+	$raw_fields = $ripped_sql[0] ;
+	$fields = str_replace("`","",$raw_fields) ;
+	$ripped_sql = split(" ",$ripped_sql[1]) ;
+	$table = $ripped_sql[0] ;
+	$ripped_fields = $fields=="*" ? zig("query","SHOW COLUMNS FROM $table","summary.sql.php") : split(",",$fields) ;
+	foreach($ripped_fields as $field)
+	{
+		$splitted_field = split("\.",$field) ;
+		$new_fields[] = $splitted_field[sizeof($splitted_field)-1] ;
+	}
+	
+	$ripped_fields = $new_fields ;
+	
+	if(!$total_records)
+	{
+		$result = zig("query",$sql,"summary.sql.php") ;
+		$total_records = $result->RecordCount() ;
+		
+	}
+
+	foreach($ripped_fields as $field)
+	{
+		if(!in_array($field,$exclude))
+		{
+			$sql_field = "`".str_replace(".","`.`",$field)."`" ;
+			$distinct_sql = str_replace($raw_fields,$sql_field.",COUNT(*)",$sql." GROUP BY $sql_field ") ;
+			$distinct_sql = str_replace("select","SELECT DISTINCT",$distinct_sql) ;
+			$distinct_result = zig("query",$distinct_sql,"summary.sql.php") ;
+			$distinct_records = $distinct_result->RecordCount() ;
+			if($distinct_records<($total_records*0.30) and $distinct_records>1)
+			{
+				$buffer.= zig("template","block","summary","summary labels") ;
+				$titlecase_field = str_replace("_"," ",$field) ;
+				$titlecase_field = zig("string_format",$titlecase_field,"titlecase") ;
+				$buffer = str_replace("{category}",$titlecase_field,$buffer) ;
+				
+				while($distinct_fetch=$distinct_result->fetchRow())
+				{
+					$buffer.= zig("template","block","summary","summary row") ;
+					$category = $distinct_fetch[$field]==" " ? "[space]" : (($distinct_fetch[$field]==NULL or $distinct_fetch[$field]=="NULL" or $distinct_fetch[$field]=="") ? "[blank]" : $distinct_fetch[$field]) ;
+					$buffer = str_replace("{category}",$category,$buffer) ;
+					$buffer = str_replace("{records}",$distinct_fetch['COUNT(*)'],$buffer) ;
+					$my_saved_records[$field][$category] = $distinct_fetch['COUNT(*)'] ;
+					$buffer = str_replace("{chart}","{".$field."_chart}",$buffer) ;
+					$buffer = str_replace("{norec}","{".$field."_norec}",$buffer) ;
+					
+				
+					
+
+					
+				}
+			}
+		}
+	}
+	
+	foreach($my_saved_records as $category => $items)
+	{
+		foreach($items as $item_name => $number_of_records)
+				{
+				    
+				    $labels.= $item_name ? "|".$item_name : $item_name ;
+					$pie.= $number_of_records ? ",".$number_of_records : $number_of_records ;
+					$norec = sizeof($items)+1 ;										
+				}
+	
+	$image = "<img src='http://chart.apis.google.com/chart?cht=p3&chd=t:0$pie&chco=ff0000,00ff00,0000ff&chs=500x100&chl=$labels'  />";
+	$buffer = str_replace("{".$category."_chart}",$image,$buffer) ;
+	$buffer = str_replace("{".$category."_norec}",$norec,$buffer) ;
+	unset($labels,$pie) ;
+
+	}
+	
+	
+	
+$buffer = $buffer ? zig("template","block","summary","summary subheader").$buffer.zig("template","block","summary","summary subfooter") : NULL ;
+}
+
+
+
+
+if($buffer or !$display)
+	{
+	
+	if(!$display)
+		{
+			$buffer = zig("template","block","summary","summary header").$buffer.zig("template","block","summary","summary footer") ;
+		}
+		
+		// -- Start fieldset
+		
+		$buffer = zig("jscripts",$buffer,"fieldset") ;
+		$buffer = str_replace("{zig_invisible_class}","zig_invisible",$buffer) ;
+		$buffer = str_replace("{zig_fieldset_collapsed_class}","zig_fieldset_collapsed",$buffer) ;
+		$buffer = str_replace("{sql}",addslashes($sql),$buffer) ;
+		$buffer = str_replace("{total_records}",$total_records,$buffer) ;
+
+		// -- End fieldset
+	}
+	
+	$zig_result['value'] = $buffer ;
+	$zig_result['return'] = 1 ;
+	
+	return $zig_result ;
+	}
+}
+
+}}}

@@ -1,0 +1,68 @@
+#summary permissions.lib.php
+
+= Description =
+A class called to implement user permissions
+
+= Parameters =
+ * $module
+ * $script
+ * $action
+
+= Return Value =
+ * Returns true or false per parameters given.
+
+= Source =
+{{{
+
+class zig_permissions
+{
+	function permissions($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$module = $arg1 ? $arg1 : $GLOBALS['zig']['current']['module'] ;
+			$script = $arg2 ? $arg2 : $GLOBALS['zig']['current']['script'] ;
+			$action = $arg3 ? $arg3 : $GLOBALS['zig']['current']['action'] ;
+		}
+		else if(is_array($parameters))
+		{
+			$module = array_key_exists("module",$parameters) ? $parameters['module'] : $GLOBALS['zig']['current']['module'] ;
+			$script = array_key_exists("script",$parameters) ? $parameters['script'] : $GLOBALS['zig']['current']['script'] ;
+			$action = array_key_exists("action",$parameters) ? $parameters['action'] : $GLOBALS['zig']['current']['action'] ;
+			$tab = array_key_exists("tab",$parameters) ? $parameters['tab'] : NULL ;
+			$field_name = array_key_exists("field_name",$parameters) ? $parameters['field_name'] : "all" ;
+			$field_value = array_key_exists("field_value",$parameters) ? $parameters['field_value'] : "all" ;
+		}
+		
+		require_once("../zig-api/lib/info.lib.php") ;
+		$zig_info_obj = new zig_info ;
+		$user = $zig_info_obj->user() ;
+		$group = $zig_info_obj->group() ;
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+		if(!$tab)
+		{
+			$sql = "SELECT name FROM `${zig_global_database}`.`${pre}tabs` WHERE module='$module' AND link='$script' LIMIT 1" ;
+			$result = zig("query",$sql,"permissions.lib.php") ;
+			$fetch = $result->fetchRow() ;
+			$tab = $fetch['name'] ;
+		}
+		$sql = "SELECT users FROM $zig_global_database.${pre}permissions WHERE (users='$user' OR users='$group' OR users='all') AND (module='$module' OR module='all') AND (tab='$tab' OR tab='all') AND (action='$action' OR action='all') AND (field_name='$field_name' OR field_name='all') AND (field_value='$field_value' OR field_value='all') AND permission='allow' LIMIT 1" ;
+		$result = zig("query",$sql,"permissions.lib.php",false) ;
+		$permission = $result->RecordCount() ;
+		
+		if($permission)
+		{
+			$sql = "SELECT users FROM $zig_global_database.${pre}permissions WHERE (users='$user' OR users='$group' OR users='all') AND (module='$module' OR module='all') AND (tab='$tab' OR tab='all') AND (action='$action' OR action='all') AND (field_name='$field_name' OR field_name='all') AND (field_value='$field_value' OR field_value='all') AND permission='deny' LIMIT 1" ;
+			$result = zig("query",$sql,"permissions.lib.php",false) ;
+			$permission = $result->RecordCount() ? false : true ;
+		}
+
+		$zig_return['value'] = $permission ;
+		$zig_return['return'] = 1 ;
+		
+		return $zig_return ;
+	}
+}
+
+}}}

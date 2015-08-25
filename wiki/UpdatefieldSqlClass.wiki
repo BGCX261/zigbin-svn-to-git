@@ -1,0 +1,101 @@
+#summary update_field.sql.php
+
+= Description =
+A class used to update data in the zig_field table. This is usually an entry in for droplist module.
+
+= Parameters =
+ * $table
+ * $field
+ * $parent_value
+
+= Return Value =
+ * Returns a buffer true or false.
+
+= Source =
+{{{
+class zig_update_field
+{
+	function update_field($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1 or $arg2 or $arg3)
+		{
+			$table = $arg1 ;
+			$field = $arg2 ;
+			$parent_value = $arg3 ;
+		}
+		else if(is_array($parameters))
+		{
+			$table = array_key_exists("table",$parameters) ? $parameters['table'] : NULL ;
+			$field = array_key_exists("field",$parameters) ? $parameters['field'] : NULL  ;
+			$parent_value = array_key_exists("parent_value",$parameters) ? $parameters['parent_value'] : NULL  ;
+		}
+
+
+		if(!$data_saved and (isset($_GET[$old_field_name]) or isset($_POST[$old_field_name])))
+		{
+			$posted_value = isset($_GET[$old_field_name]) ? $_GET[$old_field_name] : (isset($_POST[$old_field_name]) ? $_POST[$old_field_name] : '') ; ;
+		}
+
+		$field_data_required_flag = ($fetch['Null']=="NO" and $mode<>"view") ? "<font color='#FF0000'>*</font>" : "" ;
+		$field_data_required_flag = "<font color='#FF0000'>*</font>" ;
+		$pre = zig("config","pre") ;
+		$zig_global_database = zig("config","global_database") ;
+		
+		// Start remove the database name on the table
+		$semi_stripped_table = str_replace($zig_global_database.".","",$table) ;
+		// End remove the database name on the table
+
+		// Start stripped table name
+		$stripped_table = str_replace($pre,"",$semi_stripped_table) ;
+		// End stripped table name
+				
+		$field_sql = "SELECT `field`,`sql`,`index`,`code_attributes` FROM `${zig_global_database}`.`${pre}fields` WHERE table_name='$table' AND field='$field' LIMIT 1" ;
+		$field_result = zig("query",$field_sql,"update_field.sql.php") ;
+		$field_fetch = $field_result->fetchRow() ;
+
+		if(isset($field_fetch['code']))
+		{
+			// -- Start assign default values
+			$code = $field_fetch['code'] ;
+			switch ($field_fetch['code_type'])
+			{
+				case "php" :
+					$default = eval($code) ;
+					break ;
+				case "sql" :
+					$default_result = zig("query",$code,"fields.lib.php") ;
+					$default_fetch = $default_result->fetchRow() ;
+					$default = $default_fetch['zig_default'] ;
+					break ;
+			}
+			// -- End assign default values
+			$value = $default ;
+		}
+		else
+		{
+			$value = isset($posted_value) ? $posted_value : $fetch['Default'] ;
+		}
+
+//		$selected = ($mode<>"add" and $data_fetch[$fetch['Field']]) ? $data_fetch[$fetch['Field']] : $value ;
+		eval("\$sql = \"$field_fetch[sql]\";") ;
+		$droplist_parameters = array
+		(
+			'function'	=>	'droplist',
+			'sql'		=>	$sql,
+			'value'		=>	$field_fetch['index'],
+			'default'	=>	$selected,
+			'name'		=>	$field_fetch['field']
+		) ;
+		$droplist = zig($droplist_parameters) ;
+		
+		$droplist = str_ireplace("<select name='$field_fetch[field]'>","<select name='$field_fetch[field]' $field_fetch[code_attributes]>",$droplist) ;
+		$buffer= "<div id='zig_div_field_dependent_$field_fetch[field]'>".$droplist.$field_data_required_flag."</div>" ;
+
+		$zig_result['value'] = $buffer ;
+		$zig_result['return'] = 1 ;
+		
+		return $zig_result ;
+	}
+}
+
+}}}

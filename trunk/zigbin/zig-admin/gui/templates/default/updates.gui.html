@@ -1,0 +1,20 @@
+<!-- start get -->
+<div class="zig_center">
+	<div id="divApplicationList">{applications}</div>
+	<br />
+	<input onclick="zig('divUpdateSqlId','{zig_hash}') ;" type="button" value="Get Updates" />
+	{push}
+</div>
+<div id="divUpdateSqlId"></div>
+<!-- end get -->
+
+<!-- start push -->
+&nbsp;&nbsp;&nbsp;&nbsp;
+<input onclick="zig('divUpdateSqlId','{pushHash}') ;" type="button" value="Push Updates" />
+
+<!-- end push -->
+
+<!-- start application -->
+<input id="{applicationName}" type="checkbox" checked="checked" />{applicationName}<br />
+
+<!-- end application -->

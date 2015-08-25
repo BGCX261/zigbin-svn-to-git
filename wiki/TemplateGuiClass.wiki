@@ -1,0 +1,156 @@
+#summary template.gui.php
+
+= Description =
+A class used to call on gui template files and blocks depending on the parameters.
+
+= Parameters =
+ * $file
+ * $block
+
+= Return Value =
+ * Returns a buffer containing template files and blocks triggering true or false.
+
+= Source =
+{{{
+class zig_template
+{
+	function template($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		unset($buffer) ;
+		print_r($parameters);
+		print $arg1 . "---arg1";
+		print $arg2 . "---arg2";
+		print $arg3 . "---arg3";
+		
+		
+		if($arg1 or $arg2 or $arg3)
+		{
+			$method = $arg1 ;
+			if($method=="file")
+			{
+				$file = $arg2 ;
+			}
+			else if($method=="block")
+			{
+				$file = $arg2 ;
+				$block = $arg3 ;
+			}
+			else
+			{
+				$buffer = $method ;
+				$var = $arg2 ;
+				$value = $arg3 ;
+			}
+		}
+		else if(is_array($parameters))
+		{
+			$method = $parameters['method'] ;
+			$file = $parameters['file'] ;
+			$block = $parameters['block'] ;
+			$buffer = $parameters['buffer'] ;
+			$var = $parameters['var'] ;
+			$value = $paramenters['value'] ;
+		}
+
+		if($method=="file" or $method=="block")
+		{
+			if(!file_exists($file))
+			{
+				$file = $file.".gui.tpl" ;
+				if(!file_exists($file))
+				{
+					$application_template = "../".$GLOBALS['zig']['current']['module']."/".$GLOBALS['zig']['path']['template']."/".$GLOBALS['zig']['current']['template']."/".$file ;
+					if(file_exists($application_template))
+					{
+						$file = "../".$GLOBALS['zig']['current']['module']."/".$GLOBALS['zig']['path']['template']."/".$GLOBALS['zig']['current']['template']."/".$file ;
+					}
+					else
+					{
+						$file = "../".$GLOBALS['zig']['path']['api']."/".$GLOBALS['zig']['path']['template']."/".$GLOBALS['zig']['current']['template']."/".$file ;
+					}
+				}
+			}
+		
+			if($method=="file" and $file)
+			{
+				$buffer = $this->template_file('',$file) ;
+			}
+			else if($method=="block" and $file and $block)
+			{
+				$buffer = $this->template_block('',$file,$block) ;
+			}
+		}
+		
+		else
+		{
+			$buffer = $this->template_replace('',$buffer,$var,$value) ;
+		}
+		
+		$boo_result['value'] = $buffer ;
+		$boo_result['return'] = 1 ;
+		
+		return $boo_result ;
+	}
+	
+	function template_file($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$file = $arg1 ;
+		}
+		else
+		{
+			$file = $parameters['file'] ;
+		}
+
+		$handle = fopen($file,"r") ;
+		$buffer = fread($handle, filesize($file)) ;
+		fclose($handle) ;
+		return $buffer ;
+	}
+
+	function template_replace($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$buffer = $arg1 ;
+			$var = $arg2 ;
+			$value = $arg3 ;
+		}
+		else if(is_array($parameters))
+		{
+			
+		}
+		$buffer = str_replace($var,$value,$buffer) ;
+		
+		return $buffer ;
+	}
+
+	function template_block($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$file = $arg1 ;
+			$block = $arg2 ;
+		}
+		else if(is_array($parameters))
+		{
+			$file = $parameters['file'] ;
+			$block = $parameters['block'] ;
+		}
+		
+		$handle = fopen($file,"r") ;
+		$buffer = fread($handle, filesize($file)) ;
+		fclose($handle) ;
+		
+		$ripped_block = split("<!-- start $block -->",$buffer) ;
+		$buffer = $ripped_block[1] ;
+		$ripped_block = split("<!-- end $block -->",$buffer) ;
+		$buffer = $ripped_block[0] ;
+		
+		return $buffer ;
+	}
+	
+}
+
+}}}

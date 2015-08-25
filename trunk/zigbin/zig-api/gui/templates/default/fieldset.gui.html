@@ -1,0 +1,24 @@
+<!-- start collapsible -->
+	<fieldset id='zig_child_fieldset_{unique_name}' class='{zig_fieldset_class}'>
+		<legend class='{zig_fieldset_title_class}'>&bull;&nbsp;<a href="javascript:zig_fieldset('zig_child_fieldset_{unique_name}','zig_div_fields_fieldset_{unique_name}'{callback}) ;">{title}</a></legend> 
+		<div id='zig_div_fields_fieldset_{unique_name}' class='{zig_div_fieldset_class}'>
+			{description}
+			{content}
+		</div>
+	</fieldset>
+<!-- end collapsible -->
+
+<!-- start uncollapsible -->
+	<fieldset id='zig_child_fieldset_{unique_name}' class='{zig_fieldset_class}'>
+		<legend class='{zig_fieldset_title_class}'>&bull;&nbsp;{title}</legend> 
+		<div id='zig_div_fields_fieldset_{unique_name}' class='{zig_div_fieldset_class}'>
+			{description}
+			{content}
+		</div>
+	</fieldset>
+<!-- end uncollapsible -->
+
+<!-- start description -->
+<div class="zig_div_fields_description">{description}</div>
+
+<!-- end description -->

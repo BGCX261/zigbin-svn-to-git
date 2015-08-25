@@ -1,0 +1,30 @@
+<!-- start edit -->
+{trigger}
+<div id="divEditFields">
+	<form id="{uniqueString}_form">
+		{parent}
+	</form>
+	<div class="zig_div_save_button">
+		<input id="zig_input_save_button_id" onclick="javascript:listingEditRecord(this,'{uniqueString}','{saveHash}') ;" type="button" 
+			value="Save" />
+		<div id="spanSavingLoaderId">&nbsp;</div>
+	</div>
+	{child}
+</div>
+
+<!-- end edit -->
+
+<!-- start view -->
+<div id="divEditFields" class="divEditFields">
+	<form id="{uniqueString}_form">
+		{parent}
+	</form>
+	<div class="zig_div_save_button">
+		<input id="zig_input_save_button_id" onclick="javascript:listingEditRecord(this,'{uniqueString}','{saveHash}') ;" type="button" 
+			value="Save" />
+		<div id="spanSavingLoaderId">&nbsp;</div>
+	</div>
+	{child}
+</div>
+
+<!-- end view -->

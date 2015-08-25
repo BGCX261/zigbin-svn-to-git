@@ -1,0 +1,39 @@
+#summary wizard - data wizard
+#labels Featured
+= wizard =
+ wizard – data wizard
+
+ (zigbin v1.0)
+
+= Description =
+ string wizard(array parameters) = process sql table 
+
+= Parameters =
+ table = database table name
+
+ sql = search sql
+
+= Return Value =
+ id = row data id
+
+= Example =
+{{{
+<?php
+require_once("../zig-api/zigbin.php");
+
+zig("wizard","my_table") ;
+?>
+
+
+<?php
+require_once("../zig-api/zigbin.php");
+
+$parameters = array
+(
+function => 'wizard',
+sql      => 'SELECT id,name FROM my_table'
+) ;
+zig($parameters) ;
+?>
+
+}}}

@@ -1,0 +1,81 @@
+#summary display_flag.lib.php
+
+= Description =
+
+Responsible in displaying what contents should be displayed.
+
+= Parameters =
+ * display_flags:
+
+
+= Return Value =
+ * topmenu
+ * header
+ * applications
+ * actions
+ * tabs
+ * messenger
+ * side_dock
+ * trigger
+ * footer
+ * print_view
+ * print_header
+ * print_sub_header
+ * print_sub_footer
+ * print_footer
+
+= Source =
+{{{
+
+class zig_display_flags
+{
+	function display_flags($parameters,$arg1='',$arg2='',$arg3='')
+	{
+		if($arg1)
+		{
+			$zig_result = $arg1 ;
+			$parameters = $arg2 ;
+		}
+		else
+		{
+			$zig_result = $parameters['zig_result'] ;
+			$parameters = $parameters['parameters'] ;
+		}
+		$zig_gui_flags[] = "topmenu" ;
+		$zig_gui_flags[] = "header" ;
+		$zig_gui_flags[] = "applications" ;
+		$zig_gui_flags[] = "actions" ;
+		$zig_gui_flags[] = "tabs" ;
+		$zig_gui_flags[] = "messenger" ;
+		$zig_gui_flags[] = "side_dock" ;
+		$zig_gui_flags[] = "trigger" ;
+		$zig_gui_flags[] = "footer" ;
+		$zig_gui_flags[] = "print_view" ;
+		$zig_gui_flags[] = "print_header" ;
+		$zig_gui_flags[] = "print_sub_header" ;
+		$zig_gui_flags[] = "print_sub_footer" ;
+		$zig_gui_flags[] = "print_footer" ;
+
+		foreach($zig_gui_flags as $flag)
+		{
+
+			if(!isset($zig_result[$flag]) and is_array($zig_result))
+			{
+				$module_config = zig("config",$flag,$GLOBALS['zig']['current']['module']) ;
+				$zig_result[$flag] = (isset($parameters[$flag]) and is_array($parameters)) ? $parameters[$flag] : ($module_config<>NULL ? $module_config : zig("config",$flag)) ;
+			}
+
+		}
+
+		$zig_return['return'] = 1 ;
+		$zig_return['value'] = $zig_result ;
+			
+		print_r($zig_return);
+		return $zig_return ;
+        }
+}
+
+}}}
+
+
+
